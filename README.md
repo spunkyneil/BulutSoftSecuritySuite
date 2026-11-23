@@ -36,3 +36,7 @@ Only binaries built from this repository's source are signed. The program does n
 ## License
 
 [MIT](LICENSE). Third-party components keep their own licenses (see `LabDenetim/Kure/*-LICENSE.txt`).
+
+## Licensing model
+
+The source code is open under the [MIT license](LICENSE). The ready-made, tested installers come with a 14-day trial; after the trial (or when a license expires) only *starting new scans* is restricted — sign-in, history, reports, running protections and your data are never locked or deleted. Paid licenses, support and updates are provided by BulutSoft. You are free to build the project from source yourself.
