@@ -1,0 +1,200 @@
+[
+  {
+    "ad": "dnsenum-alan", "kategori": "bilgi-toplama", "arac": "dnsenum", "paket": "dnsenum", "sudo": false, "tahmini": 120, "zamanAsimi": 600,
+    "hedefTuru": "alan", "ayirici": "satir-listesi", "internet": true, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Müşteri alan adının DNS kayıtlarını ve alt alan adlarını listeler (ters çözümleme kapalı).",
+    "parametreler": [],
+    "argv": ["dnsenum", "--noreverse", "{hedef}"]
+  },
+  {
+    "ad": "theharvester-alan", "kategori": "bilgi-toplama", "arac": "theHarvester", "paket": "theharvester", "sudo": false, "tahmini": 90, "zamanAsimi": 600,
+    "hedefTuru": "alan", "ayirici": "satir-listesi", "internet": true, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Herkese açık kaynaklardan alan adına ait e-posta ve alt alan adı bilgisi toplar (OSINT).",
+    "parametreler": [
+      { "ad": "kaynak", "desen": "crtsh|rapiddns|hackertarget|otx|urlscan|duckduckgo", "varsayilan": "crtsh" },
+      { "ad": "limit", "desen": "[1-9][0-9]{0,2}", "varsayilan": "100", "min": 1, "max": 500 }
+    ],
+    "argv": ["theHarvester", "-d", "{hedef}", "-b", "{kaynak}", "-l", "{limit}"]
+  },
+  {
+    "ad": "reconng-modul", "kategori": "bilgi-toplama", "arac": "recon-ng", "paket": "recon-ng", "sudo": false, "tahmini": 60, "zamanAsimi": 300,
+    "hedefTuru": "alan", "ayirici": "satir-listesi", "internet": true, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Recon-ng'nin anahtarsız iki modülünü (hackertarget, sertifika şeffaflığı) alan adı için çalıştırır; modül önceden kurulu olmalıdır.",
+    "parametreler": [
+      { "ad": "modul", "desen": "recon/domains-hosts/(hackertarget|certificate_transparency)", "varsayilan": "recon/domains-hosts/hackertarget" }
+    ],
+    "argv": ["recon-ng", "-w", "bulutsoft", "-m", "{modul}", "-o", "SOURCE={hedef}", "-x"]
+  },
+  {
+    "ad": "netdiscover-ag", "kategori": "bilgi-toplama", "arac": "netdiscover", "paket": "netdiscover", "sudo": true, "tahmini": 30, "zamanAsimi": 120,
+    "hedefTuru": "ip", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Yerel ağdaki aktif cihazları ARP ile bulur. Hedef, ağın taban adresidir (örn. 192.168.56.0); önek 24-30 olabilir. Yalnızca iç ağ.",
+    "parametreler": [
+      { "ad": "onek", "desen": "2[4-9]|30", "varsayilan": "24" }
+    ],
+    "argv": ["netdiscover", "-r", "{hedef}/{onek}", "-P", "-N"]
+  },
+  {
+    "ad": "spiderfoot-tarama", "kategori": "bilgi-toplama", "arac": "spiderfoot", "paket": "spiderfoot", "sudo": false, "tahmini": 300, "zamanAsimi": 900,
+    "hedefTuru": "alan", "ayirici": "satir-listesi", "internet": true, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "SpiderFoot'u başsız komut satırında, yalnızca pasif modüllerle çalıştırır (web arayüzü kullanılmaz).",
+    "parametreler": [],
+    "argv": ["spiderfoot", "-s", "{hedef}", "-u", "passive", "-o", "json", "-q"]
+  },
+  {
+    "ad": "tcpdump-yakala", "kategori": "ag-analizi", "arac": "tcpdump", "paket": "tcpdump", "sudo": true, "tahmini": 15, "zamanAsimi": 120,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Seçilen arayüzde sınırlı sayıda paketi yakalayıp özet satırlar olarak gösterir (dosyaya yazmaz). Yalnızca kendi test trafiğiniz.",
+    "parametreler": [
+      { "ad": "arayuz", "desen": "[a-zA-Z][a-zA-Z0-9._-]{0,14}", "varsayilan": "eth0", "tur": "arayuz" },
+      { "ad": "paket_sayisi", "desen": "[1-9][0-9]{0,3}", "varsayilan": "100", "min": 1, "max": 5000 }
+    ],
+    "argv": ["tcpdump", "-nn", "-i", "{arayuz}", "-c", "{paket_sayisi}", "-s", "256"]
+  },
+  {
+    "ad": "tshark-pcap-ozet", "kategori": "ag-analizi", "arac": "tshark", "paket": "tshark", "sudo": false, "tahmini": 20, "zamanAsimi": 300,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Sensörde ~/bulutsoft_inceleme klasöründeki bir .pcap dosyasının protokol hiyerarşisi özetini çıkarır (Wireshark'ın komut satırı karşılığı).",
+    "parametreler": [
+      { "ad": "dosya", "desen": "[A-Za-z0-9][A-Za-z0-9._-]{0,99}\\.(pcap|pcapng|cap)", "varsayilan": "", "tur": "dosya" }
+    ],
+    "argv": ["tshark", "-r", "{inceleme}/{dosya}", "-q", "-z", "io,phs"]
+  },
+  {
+    "ad": "netcat-baglanti", "kategori": "ag-analizi", "arac": "nc", "paket": "netcat-openbsd", "sudo": false, "tahmini": 5, "zamanAsimi": 30,
+    "hedefTuru": "ip-alan", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Hedefte bir TCP kapısına bağlanılabiliyor mu sınar (yalnızca bağlantı testi; veri göndermez).",
+    "parametreler": [
+      { "ad": "kapi", "desen": "[1-9][0-9]{0,4}", "varsayilan": "80", "min": 1, "max": 65535 }
+    ],
+    "argv": ["nc", "-zv", "-w", "5", "{hedef}", "{kapi}"]
+  },
+  {
+    "ad": "macchanger-goster", "kategori": "gizlilik", "arac": "macchanger", "paket": "macchanger", "sudo": false, "tahmini": 2, "zamanAsimi": 20,
+    "hedefTuru": "yok", "ayirici": "anahtar-deger", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Bir ağ arayüzünün geçerli ve kalıcı MAC adresini gösterir (değiştirmez).",
+    "parametreler": [
+      { "ad": "arayuz", "desen": "[a-zA-Z][a-zA-Z0-9._-]{0,14}", "varsayilan": "eth0", "tur": "arayuz" }
+    ],
+    "argv": ["macchanger", "-s", "{arayuz}"]
+  },
+  {
+    "ad": "tor-durum", "kategori": "gizlilik", "arac": "systemctl", "paket": "systemd", "sudo": false, "tahmini": 1, "zamanAsimi": 20,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Tor hizmetinin çalışıp çalışmadığını gösterir.",
+    "parametreler": [],
+    "argv": ["systemctl", "is-active", "tor"]
+  },
+  {
+    "ad": "tor-baslat", "kategori": "gizlilik", "arac": "systemctl", "paket": "systemd", "sudo": true, "tahmini": 3, "zamanAsimi": 30,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": true, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Tor hizmetini başlatır.",
+    "parametreler": [],
+    "argv": ["systemctl", "start", "tor"]
+  },
+  {
+    "ad": "tor-durdur", "kategori": "gizlilik", "arac": "systemctl", "paket": "systemd", "sudo": true, "tahmini": 3, "zamanAsimi": 30,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Tor hizmetini durdurur.",
+    "parametreler": [],
+    "argv": ["systemctl", "stop", "tor"]
+  },
+  {
+    "ad": "proxychains-baglanti", "kategori": "gizlilik", "arac": "proxychains4", "paket": "proxychains4", "sudo": false, "tahmini": 10, "zamanAsimi": 60,
+    "hedefTuru": "ip-alan", "ayirici": "satir-listesi", "internet": true, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Bir TCP kapısına bağlantı denemesini proxychains (örn. Tor) üzerinden yapar; önce proxychains yapılandırması ve Tor çalışıyor olmalıdır.",
+    "parametreler": [
+      { "ad": "kapi", "desen": "[1-9][0-9]{0,4}", "varsayilan": "80", "min": 1, "max": 65535 }
+    ],
+    "argv": ["proxychains4", "-q", "nc", "-zv", "-w", "10", "{hedef}", "{kapi}"]
+  },
+  {
+    "ad": "wpscan-url", "kategori": "web", "arac": "wpscan", "paket": "wpscan", "sudo": false, "tahmini": 180, "zamanAsimi": 900,
+    "hedefTuru": "ip-alan", "ayirici": "satir-listesi", "internet": true, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "WordPress sitesinin sürümünü, eklentilerini ve bilinen açıklarını tarar. Yalnızca müşterinin kendi sitesi veya staging; hedef yazılı onaylı olmalıdır.",
+    "parametreler": [
+      { "ad": "sema", "desen": "https?", "varsayilan": "https" }
+    ],
+    "argv": ["wpscan", "--url", "{sema}://{hedef}", "--no-banner", "--no-update", "--format", "cli-no-colour", "--random-user-agent"]
+  },
+  {
+    "ad": "mmls-bolum", "kategori": "adli-bilisim", "arac": "mmls", "paket": "sleuthkit", "sudo": false, "tahmini": 5, "zamanAsimi": 120,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Disk imajının bölüm tablosunu gösterir (Sleuth Kit). İmaj ~/bulutsoft_inceleme klasöründe olmalıdır.",
+    "parametreler": [
+      { "ad": "dosya", "desen": "[A-Za-z0-9][A-Za-z0-9._-]{0,99}", "varsayilan": "", "tur": "dosya" }
+    ],
+    "argv": ["mmls", "{inceleme}/{dosya}"]
+  },
+  {
+    "ad": "fls-liste", "kategori": "adli-bilisim", "arac": "fls", "paket": "sleuthkit", "sudo": false, "tahmini": 60, "zamanAsimi": 600,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Disk imajındaki dosya ve klasörleri (silinmişler dahil) yol yoluyla listeler (Sleuth Kit).",
+    "parametreler": [
+      { "ad": "dosya", "desen": "[A-Za-z0-9][A-Za-z0-9._-]{0,99}", "varsayilan": "", "tur": "dosya" }
+    ],
+    "argv": ["fls", "-r", "-p", "{inceleme}/{dosya}"]
+  },
+  {
+    "ad": "foremost-kurtar", "kategori": "adli-bilisim", "arac": "foremost", "paket": "foremost", "sudo": false, "tahmini": 300, "zamanAsimi": 1800,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Disk imajından dosya imzalarına göre silinmiş dosyaları kurtarır; çıktı ~/bulutsoft_inceleme/foremost_<zaman> klasörüne yazılır.",
+    "parametreler": [
+      { "ad": "dosya", "desen": "[A-Za-z0-9][A-Za-z0-9._-]{0,99}", "varsayilan": "", "tur": "dosya" }
+    ],
+    "argv": ["foremost", "-i", "{inceleme}/{dosya}", "-o", "{inceleme}/foremost_{zaman}"]
+  },
+  {
+    "ad": "binwalk-tara", "kategori": "adli-bilisim", "arac": "binwalk", "paket": "binwalk", "sudo": false, "tahmini": 30, "zamanAsimi": 600,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Firmware veya ikili dosyadaki gömülü dosya ve dosya sistemlerini listeler (çıkarmaz).",
+    "parametreler": [
+      { "ad": "dosya", "desen": "[A-Za-z0-9][A-Za-z0-9._-]{0,99}", "varsayilan": "", "tur": "dosya" }
+    ],
+    "argv": ["binwalk", "{inceleme}/{dosya}"]
+  },
+  {
+    "ad": "volatility3-eklenti", "kategori": "adli-bilisim", "arac": "vol", "paket": "volatility3", "sudo": false, "tahmini": 300, "zamanAsimi": 1800,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "Bellek imajında seçilen Volatility3 eklentisini (işlem listesi, ağ bağlantıları vb.) çalıştırır.",
+    "parametreler": [
+      { "ad": "eklenti", "desen": "windows\\.(info|pslist|pstree|cmdline|netscan)|linux\\.(pslist|bash)", "varsayilan": "windows.pslist" },
+      { "ad": "dosya", "desen": "[A-Za-z0-9][A-Za-z0-9._-]{0,99}", "varsayilan": "", "tur": "dosya" }
+    ],
+    "argv": ["vol", "-q", "-f", "{inceleme}/{dosya}", "{eklenti}"]
+  },
+  {
+    "ad": "radare2-ozet", "kategori": "ters-muhendislik", "arac": "r2", "paket": "radare2", "sudo": false, "tahmini": 15, "zamanAsimi": 120,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "İkili dosyanın bilgi ve bölüm özetini çıkarır (radare2 iI;iS).",
+    "parametreler": [
+      { "ad": "dosya", "desen": "[A-Za-z0-9][A-Za-z0-9._-]{0,99}", "varsayilan": "", "tur": "dosya" }
+    ],
+    "argv": ["r2", "-q", "-c", "iI;iS", "{inceleme}/{dosya}"]
+  },
+  {
+    "ad": "gdb-ozet", "kategori": "ters-muhendislik", "arac": "gdb", "paket": "gdb", "sudo": false, "tahmini": 10, "zamanAsimi": 120,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": false, "dogrulandi": false,
+    "aciklama": "İkili dosyanın bölümlerini ve işlev listesini gdb toplu kipinde özetler (programı çalıştırmaz).",
+    "parametreler": [
+      { "ad": "dosya", "desen": "[A-Za-z0-9][A-Za-z0-9._-]{0,99}", "varsayilan": "", "tur": "dosya" }
+    ],
+    "argv": ["gdb", "-batch", "-nx", "-ex", "info files", "-ex", "info functions", "{inceleme}/{dosya}"]
+  },
+  {
+    "ad": "maltego-ac", "kategori": "masaustu", "arac": "maltego", "paket": "maltego", "sudo": false, "tahmini": 5, "zamanAsimi": 30,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": true, "dogrulandi": false,
+    "aciklama": "Maltego'yu Kali sanal makinesinin masaüstünde açar (arayüz sanal makine penceresinde kullanılır). Lisans: Maltego CE ticari kullanıma uygun olmayabilir; müşteri kendi lisansını kullanmalıdır.",
+    "parametreler": [],
+    "ortam": { "DISPLAY": ":0" },
+    "argv": ["maltego"]
+  },
+  {
+    "ad": "burpsuite-ac", "kategori": "masaustu", "arac": "burpsuite", "paket": "burpsuite", "sudo": false, "tahmini": 5, "zamanAsimi": 30,
+    "hedefTuru": "yok", "ayirici": "satir-listesi", "internet": false, "arkaPlan": true, "dogrulandi": false,
+    "aciklama": "Burp Suite'i Kali sanal makinesinin masaüstünde açar. Otomatik tarama ve raporlama Pro lisans gerektirir; Community sürümünde yoktur. Müşteri kendi lisansını kullanmalıdır.",
+    "parametreler": [],
+    "ortam": { "DISPLAY": ":0" },
+    "argv": ["burpsuite"]
+  }
+]

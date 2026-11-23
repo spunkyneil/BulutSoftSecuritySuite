@@ -1,0 +1,1 @@
+BulutSoft pilot (salt okunur) mod bayragi. Bu dosya varken program makinede degisiklik yapmaz. Kapatmak icin dosyayi silin.

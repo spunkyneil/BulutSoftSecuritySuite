@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- BulutSoft.Core: arayüzden BAĞIMSIZ çekirdek (olay günlüğü, kimlik/yetki, lisans doğrulama, kural motoru, denetim modülleri, koruma).
+       KURAL: bu projeye System.Windows.Forms, System.Drawing, WebView2 veya başka bir arayüz paketi EKLENEMEZ (bkz. CLAUDE.md). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <AssemblyName>BulutSoft.Core</AssemblyName>
+    <RootNamespace>LabDenetim</RootNamespace>
+    <Product>BulutSoft Security Suite</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.0" />
+    <PackageReference Include="System.Management" Version="10.0.0" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.15" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Gömülü kural/eşleme dosyaları (kural motoru ve yazılım envanteri bunları derlemeden okur). -->
+    <EmbeddedResource Include="pasif_kurallar.json" LogicalName="pasif_kurallar.json" />
+    <EmbeddedResource Include="aktif_kurallar.json" LogicalName="aktif_kurallar.json" />
+    <EmbeddedResource Include="cpe_esleme.json" LogicalName="cpe_esleme.json" />
+    <EmbeddedResource Include="Sensor\ajan.py" LogicalName="ajan.py" />
+    <!-- Ticari sürümde lisans otoritesinin GENEL anahtarı (varsa) çekirdeğe gömülür; yoksa Lisans kodu arayüz exe'sindeki gömüye de bakar. -->
+    <EmbeddedResource Include="otorite_genel.pem" Condition="Exists('otorite_genel.pem')" LogicalName="otorite_genel.pem" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="BulutSoftSecuritySuite" />
+    <InternalsVisibleTo Include="LabDenetim.Tests" />
+    <InternalsVisibleTo Include="BulutSoftGuardService" />
+  </ItemGroup>
+
+</Project>

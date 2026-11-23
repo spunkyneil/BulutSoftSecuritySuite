@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BulutSoft Security Suite — İnteraktif Ürün Tanıtımı</title>
+<style>
+:root{
+  --bg:#0B1020; --panel:#121A2E; --panel2:#18223A; --line:#26324D; --txt:#E8ECF4; --mut:#9AA9C2; --soft:#7787A3;
+  --acc:#6366F1; --acc2:#818CF8; --ok:#10B981; --warn:#F59E0B; --bad:#EF4444; --info:#06B6D4;
+  --f:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif; --m:Consolas,'Cascadia Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font:14px/1.5 var(--f);display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer}
+header{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--line);background:#0E1528;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.2px}
+.logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#6366F1,#06B6D4);display:grid;place-items:center}
+.logo svg{width:18px;height:18px}
+.brand small{display:block;font-weight:400;color:var(--soft);font-size:11px;margin-top:-2px}
+.chips{display:flex;gap:6px;overflow-x:auto;flex:1;min-width:0;padding:2px 0;scrollbar-width:thin}
+.chip{white-space:nowrap;border:1px solid var(--line);background:var(--panel);color:var(--mut);border-radius:999px;padding:3px 11px;font-size:12px}
+.chip:hover{color:var(--txt);border-color:#3A4A70}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.hbtn{border:1px solid var(--line);background:var(--panel);color:var(--txt);border-radius:8px;padding:6px 12px;font-size:12.5px}
+.hbtn:hover{border-color:var(--acc2)}
+main{flex:1;display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,1fr);gap:14px;padding:14px 18px;min-height:0}
+.stagewrap{display:flex;flex-direction:column;gap:8px;min-width:0}
+.crumb{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:12.5px;flex-wrap:wrap}
+.crumb b{color:var(--txt)} .crumb i{font-style:normal;color:var(--soft)}
+.stage{position:relative;border:1px solid var(--line);border-radius:14px;background:radial-gradient(1200px 500px at 50% -10%,#18244A 0%,#0A0F1F 60%);overflow:hidden;aspect-ratio:1000/640;width:100%}
+.scaler{position:absolute;left:0;top:0;width:1000px;height:640px;transform-origin:0 0}
+.sim{position:absolute;right:10px;bottom:8px;font-size:10.5px;color:#6c7ca0;background:#0b122288;padding:1px 8px;border-radius:6px}
+.cursor{position:absolute;z-index:50;width:26px;height:26px;pointer-events:none;transition:left .75s cubic-bezier(.3,.8,.2,1),top .75s cubic-bezier(.3,.8,.2,1);filter:drop-shadow(0 2px 3px #000a)}
+.cursor.click::after{content:"";position:absolute;left:-12px;top:-12px;width:30px;height:30px;border-radius:50%;border:3px solid #fff;animation:rip .7s ease-out 1}
+@keyframes rip{from{transform:scale(.3);opacity:1}to{transform:scale(1.7);opacity:0}}
+.hl{outline:3px solid #FDE047!important;outline-offset:2px;box-shadow:0 0 0 6px #FDE04733,0 0 26px 6px #FDE04766!important;position:relative;z-index:10;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px #FDE04722,0 0 34px 10px #FDE04755}}
+.side-panel{display:flex;flex-direction:column;gap:10px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.card h3{font-size:11px;letter-spacing:.9px;text-transform:uppercase;color:var(--soft);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.num{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--acc);color:#fff;font-size:11px;font-weight:700}
+.act{font-size:15px;font-weight:600}
+.act small{display:block;font-weight:400;color:var(--mut);font-size:13px;margin-top:3px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.bd{font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}
+.bd.y{border-color:#F59E0B88;color:#FBBF24} .bd.t{border-color:#06B6D488;color:#67E8F9} .bd.o{border-color:#EF444488;color:#FCA5A5}
+ol.flow{list-style:none;display:flex;flex-direction:column;gap:6px;max-height:310px;overflow:auto;padding-right:4px;scrollbar-width:thin}
+ol.flow li{display:flex;gap:8px;align-items:flex-start;opacity:0;transform:translateX(10px);transition:.4s;font-size:13px;line-height:1.45}
+ol.flow li.show{opacity:1;transform:none}
+.tag{flex:none;min-width:54px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 6px;border-radius:5px;margin-top:2px;background:#26324D;color:#C7D2FE}
+.tag.Servis{background:#3B2F6B;color:#DDD6FE}.tag.Ağ{background:#0E3B4A;color:#67E8F9}.tag.Dosya{background:#3A3417;color:#FDE68A}.tag.Güvenlik{background:#4A1F2B;color:#FCA5A5}.tag.Veri{background:#14382B;color:#6EE7B7}.tag.Hata{background:#4A2A12;color:#FDBA74}
+.out{font-size:13.5px;opacity:0;transition:.5s;min-height:40px}.out.show{opacity:1}
+.out .st{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:5px;margin-bottom:5px;background:#14382B;color:#6EE7B7}
+.out .st.w{background:#3F3112;color:#FCD34D}.out .st.e{background:#4A1F2B;color:#FCA5A5}.out .st.i{background:#0E3B4A;color:#67E8F9}
+.note{font-size:12.5px;color:var(--mut);border-left:3px solid var(--acc);padding-left:9px;margin-top:8px}
+footer{border-top:1px solid var(--line);background:#0E1528;padding:10px 18px 12px;display:flex;flex-direction:column;gap:8px}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cb{width:40px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--txt);display:grid;place-items:center;font-size:15px}
+.cb:hover{border-color:var(--acc2)} .cb.play{width:46px;background:var(--acc);border-color:var(--acc)}
+.cb:disabled{opacity:.4;cursor:default}
+select.sp{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px}
+.cnt{color:var(--mut);font-size:12.5px;margin-left:6px}
+.tl{display:flex;gap:2px;height:16px;align-items:stretch;cursor:pointer;position:relative}
+.seg{position:relative;background:#1B2644;border-radius:3px;overflow:hidden;min-width:3px}
+.seg .f{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#6366F1,#06B6D4)}
+.seg:hover{background:#26335A}
+.tlh{font-size:11.5px;color:var(--soft);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.drawer{position:fixed;inset:0 0 0 auto;width:min(440px,92vw);background:#0E1528;border-left:1px solid var(--line);transform:translateX(105%);transition:.3s;z-index:100;display:flex;flex-direction:column}
+.drawer.open{transform:none;box-shadow:-20px 0 60px #000a}
+.drawer .dh{padding:12px;border-bottom:1px solid var(--line);display:flex;gap:8px}
+.drawer input{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 10px;font:inherit}
+.dl{overflow:auto;flex:1;padding:8px 10px 20px}
+.dl h4{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--soft);margin:12px 4px 4px}
+.dl button{display:flex;gap:8px;width:100%;text-align:left;background:none;border:0;color:var(--txt);padding:5px 6px;border-radius:6px;font-size:12.5px}
+.dl button:hover{background:var(--panel2)} .dl button.cur{background:#26307A}
+.dl button span{color:var(--soft);min-width:30px}
+@media(max-width:980px){main{grid-template-columns:1fr}}
+
+/* ------------- Ürün penceresi simülasyonu (gerçek renk paleti: koyu tema) ------------- */
+.w{position:absolute;inset:0;background:#141B2E;color:#E8ECF4;font:12px 'Segoe UI',system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+.tb{height:26px;background:#0F1522;display:flex;align-items:center;padding:0 10px;font-size:11px;color:#A0B0C4;gap:8px;border-bottom:1px solid #2A3650;flex:none}
+.tb i{width:9px;height:9px;border-radius:50%;background:#6366F1;display:inline-block}
+.tb em{margin-left:auto;font-style:normal;letter-spacing:6px;color:#667}
+.uzbody{flex:1;display:flex;min-height:0}
+.side{width:178px;background:#0F1522;border-right:1px solid #2A3650;padding:6px 6px;overflow:hidden;flex:none;display:flex;flex-direction:column;gap:1px}
+.side .lg{font-weight:700;font-size:13px;padding:4px 6px 6px;display:flex;align-items:center;gap:6px}
+.side .lg small{display:block;font-weight:400;font-size:8.5px;color:#8896AB}
+.mi{padding:4px 8px;border-radius:5px;font-size:10px;color:#C8D2DE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#161E2E;margin-bottom:1px}
+.mi.on{background:#26307A;color:#fff}
+.mi.red{color:#FCA5A5;background:#3D1A1A}
+.mainc{flex:1;min-width:0;padding:8px 10px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.row{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+.pill{padding:4px 10px;border-radius:999px;background:#1C2438;border:1px solid #2A3650;font-size:10.5px;white-space:nowrap}
+.pill.on{background:#6366F1;border-color:#6366F1;color:#fff}
+.modsw{display:flex;gap:4px;margin-bottom:2px}
+.modsw .pill.g{border-color:#10B98166}
+.b{border:1px solid #354466;background:#1C2438;color:#E8ECF4;border-radius:6px;padding:4px 10px;font-size:10.5px;font-family:inherit;white-space:nowrap;cursor:default}
+.b.p{background:#6366F1;border-color:#6366F1;color:#fff;font-weight:700}
+.b.r{background:#5A2424;border-color:#EF4444;color:#FCA5A5}
+.b.g{background:#12513A;border-color:#10B981;color:#A7F3D0}
+.b.y{background:#FFD60A;border-color:#FFD60A;color:#000;font-weight:700}
+.b.d{background:#0C4A6E;border-color:#0C4A6E;color:#fff}
+.inp{background:#161D30;border:1px solid #2A3650;border-radius:5px;padding:4px 8px;font-size:10.5px;color:#A0B0C4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inp.m{font-family:Consolas,monospace}
+.k4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.kc{background:#1C2438;border-left:3px solid #6366F1;border-radius:6px;padding:5px 8px}
+.kc small{display:block;color:#8896AB;font-size:8.5px;letter-spacing:.6px}
+.kc b{font-size:15px}
+.fl{display:flex;gap:6px;align-items:center}
+.fl .b{font-weight:600}
+.fy{border-color:#10B981;color:#6EE7B7}.fs{border-color:#F59E0B;color:#FCD34D}.fk{border-color:#EF4444;color:#FCA5A5}
+.split{display:flex;gap:8px;flex:1;min-height:0}
+.tbl{flex:1.5;min-width:0;background:#161D30;border:1px solid #2A3650;border-radius:6px;overflow:hidden}
+.tbl .th,.tbl .tr{display:grid;grid-template-columns:70px 1fr 54px;gap:6px;padding:4px 8px;font-size:10px;align-items:center;border-bottom:1px solid #263044}
+.tbl .th{background:#1A2236;color:#8896AB;font-weight:700}
+.tbl .tr:hover{background:#222D4A}
+.sev{display:inline-block;padding:0 6px;border-radius:4px;font-size:9px;font-weight:700}
+.sev.k{background:#3D1A1A;color:#FCA5A5}.sev.s{background:#3D3218;color:#FCD34D}.sev.y{background:#1A3D2E;color:#6EE7B7}
+.asis{flex:1;min-width:0;background:#1C2438;border:1px solid #2A3650;border-radius:6px;padding:7px;display:flex;flex-direction:column;gap:5px;font-size:10px;color:#A0B0C4;overflow:hidden}
+.asis .h{font-weight:700;color:#E8ECF4;font-size:11px}
+.log{height:62px;background:#080D18;border:1px solid #2A3650;border-radius:6px;font:9.5px/1.45 Consolas,monospace;color:#4ADE80;padding:4px 8px;overflow:hidden;flex:none}
+.log div:nth-child(2){color:#FBBF24}.log div:nth-child(3){color:#F87171}
+.panelst{flex:1;min-height:0;display:flex;flex-direction:column;gap:5px}
+.tabs{display:flex;gap:4px}
+.tabs .b.on{background:#6366F1;border-color:#6366F1}
+.viz{flex:1;background:#0F1522;border:1px solid #2A3650;border-radius:8px;position:relative;overflow:hidden;display:grid;place-items:center}
+.viz svg{width:100%;height:100%}
+.lightc{position:absolute;width:16px;height:16px;border-radius:50%;background:#EF4444;box-shadow:0 0 14px 4px #EF4444aa}
+.shield{position:absolute;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;border:2px solid #10B981;background:#10B98122;display:grid;place-items:center;font-size:20px;color:#6EE7B7;cursor:default}
+/* Kolay görünüm */
+.kz{background:#080D18}
+.kz .hd{text-align:center;font-size:17px;font-weight:700;padding:14px 0 4px;color:#E0F2FE}
+.kz .hd small{display:block;font-size:11px;font-weight:400;color:#94A3B8;margin-top:2px}
+.cards{display:flex;gap:10px;padding:8px 16px;justify-content:center}
+.kcard{flex:1;max-width:300px;background:#0F172A;border:1.5px solid #334155;border-radius:14px;display:flex;align-items:center;gap:9px;padding:9px 11px;font-size:11.5px;font-weight:700;color:#E0F2FE;min-height:56px}
+.kcard u{flex:none;width:34px;height:34px;border-radius:50%;background:#0C4A6E;display:grid;place-items:center;text-decoration:none;font-size:16px}
+.gl{flex:1;position:relative;margin:2px 0;min-height:0}
+.gl svg{position:absolute;inset:0;width:100%;height:100%}
+.gosts{display:flex;gap:8px;padding:6px 14px 8px;flex:none}
+.gost{flex:1;background:#0F172A;border:1px solid #334155;border-radius:8px;padding:5px 9px;font-size:10px;color:#94A3B8}
+.gost b{display:block;color:#E0F2FE;font-size:10.5px}
+.gost i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.banner{position:absolute;left:50%;transform:translateX(-50%);bottom:6px;background:#141B2EE6;border:1px solid #10B98166;border-radius:8px;padding:3px 14px;text-align:center;font-size:10.5px;font-weight:700}
+.banner small{display:block;font-weight:400;font-size:8.5px;color:#94A3B8}
+.ring{width:130px;height:130px;border-radius:50%;border:12px solid #F59E0B;display:grid;place-items:center;font-size:34px;font-weight:700;margin:6px auto}
+.dim{position:absolute;inset:0;background:#05080fb0;z-index:5}
+.dlg{position:absolute;z-index:6;left:50%;top:50%;transform:translate(-50%,-50%);background:#141B2E;border:1px solid #354466;border-radius:10px;box-shadow:0 24px 70px #000c;display:flex;flex-direction:column;overflow:hidden;color:#E8ECF4;font:12px 'Segoe UI',sans-serif}
+.dlg .dt{background:#0F1522;padding:6px 12px;font-size:11px;color:#A0B0C4;border-bottom:1px solid #2A3650;display:flex;gap:8px;align-items:center}
+.dlg .dt em{margin-left:auto;font-style:normal;color:#667}
+.dlg .db{display:flex;flex:1;min-height:0}
+.dlg .nav{width:170px;background:#0A1120;border-right:1px solid #2A3650;padding:6px;display:flex;flex-direction:column;gap:3px;flex:none}
+.dlg .nav .b{text-align:left;background:#161E2E;border-color:transparent}
+.dlg .nav .b.on{background:#26307A}
+.dlg .bd2{flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column;gap:7px;font-size:11px;color:#C8D2DE}
+.dlg .bd2 h5{font-size:13px;color:#E8ECF4}
+.dlg .ft{padding:8px 12px;border-top:1px solid #2A3650;background:#0F1522;display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:10.5px;color:#C8D2DE}
+.chk i{width:12px;height:12px;border:1px solid #6B7C9E;border-radius:3px;display:inline-block;background:#161D30}
+.chk.on i{background:#6366F1;border-color:#6366F1}
+.mono{font:10px/1.5 Consolas,monospace;background:#080D18;border:1px solid #2A3650;border-radius:6px;padding:6px 8px;color:#A7F3D0;flex:1;overflow:hidden;white-space:pre-wrap}
+.dlg .bd2>*{flex-shrink:0}.dlg .bd2>.mono{flex-shrink:1}
+.lines div{height:7px;border-radius:4px;background:#26324D;margin:5px 0}
+.pal{display:flex;flex-direction:column;gap:3px}
+.pal .it{padding:4px 9px;border-radius:5px;background:#161E2E;font-size:10.5px}
+.pal .it.on{background:#26307A}
+.kbd{display:inline-block;border:1px solid #6B7C9E;border-bottom-width:2px;border-radius:5px;padding:2px 9px;font:11px Consolas,monospace;background:#1C2438;margin:3px 4px 3px 0}
+.tray{position:absolute;right:14px;bottom:10px;z-index:7;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.tmenu{background:#161B22;border:1px solid #354466;border-radius:8px;padding:4px;width:210px;font-size:11px}
+.tmenu div{padding:5px 10px;border-radius:5px;color:#E6EDF3}
+.ddm{display:none;position:absolute;left:196px;top:70px;z-index:20;background:#161B22;border:1px solid #354466;border-radius:8px;padding:4px;width:210px;box-shadow:0 10px 30px #000a}
+.ddm.open{display:block}.ddi{padding:5px 10px;border-radius:5px;font-size:10.5px;color:#E6EDF3}
+.tbar{display:flex;gap:10px;background:#0F1522;border:1px solid #2A3650;border-radius:8px;padding:6px 12px;align-items:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6l8-3z"/><path d="M8.5 12l2.4 2.4L15.5 9.8"/></svg></div><div>BulutSoft Security Suite<small>İnteraktif Ürün Tanıtımı · sürüm 1.5.3</small></div></div>
+  <div class="chips" id="chips" aria-label="Bölümler"></div>
+  <button class="hbtn" id="btnList">☰ Tüm adımlar</button>
+  <button class="hbtn" id="btnInfo">ⓘ Kapsam</button>
+</header>
+<main>
+  <section class="stagewrap">
+    <div class="crumb" id="crumb"></div>
+    <div class="stage" id="stage"><div class="scaler" id="scaler"><div id="win"></div><svg class="cursor" id="cur" viewBox="0 0 24 24"><path d="M4 2l15 9-6.5 1.6L9 19z" fill="#fff" stroke="#111" stroke-width="1.3" stroke-linejoin="round"/></svg></div><div class="sim">Arayüz simülasyonu · örnek veri</div></div>
+  </section>
+  <aside class="side-panel">
+    <div class="card"><h3><span class="num">1</span>Kullanıcı aksiyonu</h3><div class="act" id="act"></div><div class="badges" id="badges"></div></div>
+    <div class="card"><h3><span class="num">2</span>Arka plan süreci (teknik akış)</h3><ol class="flow" id="flow"></ol></div>
+    <div class="card"><h3><span class="num">3</span>Ekran çıktısı ve sonuç</h3><div class="out" id="out"></div><div class="note" id="note" hidden></div></div>
+  </aside>
+</main>
+<footer>
+  <div class="ctl">
+    <button class="cb" id="bPrev" title="Önceki adım (←)">⏮</button>
+    <button class="cb play" id="bPlay" title="Oynat / Duraklat (Boşluk)">▶</button>
+    <button class="cb" id="bNext" title="Sonraki adım (→)">⏭</button>
+    <select class="sp" id="sp" aria-label="Hız"><option value="0.7">0,7×</option><option value="1" selected>1×</option><option value="1.5">1,5×</option><option value="2.2">2,2×</option></select>
+    <span class="cnt" id="cnt"></span>
+    <span class="cnt" id="sceneName" style="margin-left:auto"></span>
+  </div>
+  <div class="tl" id="tl" role="slider" aria-label="Adım ilerleme çubuğu"></div>
+  <div class="tlh"><span>Çubuğa tıklayarak istediğiniz adıma geçin · Her bölüm bir ekranı gösterir</span><span>Klavye: Boşluk oynat · ← → adım · L liste</span></div>
+</footer>
+<div class="drawer" id="drawer"><div class="dh"><input id="q" placeholder="Düğme veya ekran ara…"><button class="hbtn" id="dx">Kapat</button></div><div class="dl" id="dl"></div></div>
+<div class="drawer" id="info"><div class="dh"><b style="flex:1;align-self:center">Kapsam</b><button class="hbtn" id="ix">Kapat</button></div><div class="dl" id="il" style="padding:14px;font-size:13px;line-height:1.6"></div></div>
+
+<script>
+"use strict";
+/* ================= Yardımcılar ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const b=(id,t,c)=>`<button class="b ${c||''}" data-b="${id}">${t}</button>`;
+const chk=(id,t,on)=>`<label class="chk ${on?'on':''}" data-b="${id}"><i></i>${t}</label>`;
+const mi=(id,t,c)=>`<div class="mi ${c||''}" data-b="${id}">${t}</div>`;
+const inp=(t,w,m)=>`<div class="inp ${m?'m':''}" style="${w?'width:'+w+'px':''}">${t}</div>`;
+const lines=n=>'<div class="lines">'+Array.from({length:n},(_,i)=>`<div style="width:${96-((i*13)%38)}%"></div>`).join('')+'</div>';
+const GLOBE=`<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"><defs><radialGradient id="og" cx="35%" cy="30%"><stop offset="0" stop-color="#1B2A44"/><stop offset="1" stop-color="#0B1222"/></radialGradient></defs><circle cx="200" cy="150" r="132" fill="url(#og)" stroke="#6366F188" stroke-width="2"/><g fill="none" stroke="#6366F122"><ellipse cx="200" cy="150" rx="132" ry="44"/><ellipse cx="200" cy="150" rx="66" ry="132"/><ellipse cx="200" cy="150" rx="132" ry="92"/><path d="M200 18v264M68 150h264"/></g><g fill="#1E2A42" stroke="#06B6D444"><path d="M120 95c20-18 50-14 62 4 6 14-6 24-20 28-24 4-52-2-42-32z"/><path d="M205 110c24-10 58 0 62 22 2 18-18 26-38 22-26-6-38-26-24-44z"/><path d="M150 190c14-6 34 2 36 20 0 14-16 24-30 18-14-6-18-30-6-38z"/><path d="M250 170c14-4 30 6 28 20-2 14-22 18-30 8-6-8-4-24 2-28z"/></g><path d="M188 122c10-8 28-6 34 4 4 10-8 18-22 18-14 0-22-12-12-22z" fill="#10B98155" stroke="#10B981" stroke-width="1.6"/><text x="204" y="140" fill="#fff" font-size="9" font-weight="800" text-anchor="middle">TÜRKİYE</text><g fill="none" stroke-width="1.6"><path d="M120 120q60-90 130-20" stroke="#06B6D4"/><path d="M230 190q40-50 70-20" stroke="#EF4444"/><path d="M160 200q-10-60 50-80" stroke="#6366F1"/></g><g fill="#fff"><circle cx="250" cy="100" r="3"/><circle cx="300" cy="170" r="3"/><circle cx="210" cy="120" r="3"/></g><g fill="#94A3B8" font-size="7.5" font-weight="600" text-anchor="middle"><text x="140" y="108">Fransa</text><text x="248" y="130">İran</text><text x="170" y="205">Mısır</text><text x="268" y="185">Hindistan</text><text x="218" y="86">Rusya</text></g></svg>`;
+const RADAR=`<svg viewBox="0 0 400 300"><g fill="none" stroke="#6366F155"><circle cx="200" cy="150" r="40"/><circle cx="200" cy="150" r="80"/><circle cx="200" cy="150" r="120"/></g><path d="M200 150L300 70" stroke="#06B6D4" stroke-width="2"/><circle cx="200" cy="150" r="18" fill="#6366F133" stroke="#6366F1"/><text x="200" y="154" fill="#E8ECF4" font-size="9" text-anchor="middle">127.0.0.1</text><g font-size="8" fill="#E8ECF4" text-anchor="middle"><circle cx="290" cy="95" r="10" fill="#EF444455" stroke="#EF4444"/><text x="290" y="98">445</text><circle cx="110" cy="105" r="10" fill="#F59E0B55" stroke="#F59E0B"/><text x="110" y="108">139</text><circle cx="130" cy="215" r="10" fill="#10B98155" stroke="#10B981"/><text x="130" y="218">80</text><circle cx="285" cy="210" r="10" fill="#10B98155" stroke="#10B981"/><text x="285" y="213">443</text></g></svg>`;
+
+/* ================= Ürün penceresi çizicileri ================= */
+const MENU=[['m-panel','◼ Panel'],['m-yeni','⚡ Yeni Tarama'],['m-gecmis','◷ Geçmiş Operasyonlar'],['m-rapor','▤ Profesyonel Rapor'],['m-durum','▦ Durum Panosu'],['m-trafik','◈ Canlı Ağ Trafiği'],['m-arac','▣ Güvenlik Araç Kutusu'],['m-sensor','◉ Uzak Sensörler (VM)'],['m-harita','▦ Ağ Haritası'],['m-merkez','◉ Sensör ve Bildirim Merkezi'],['m-brute','◎ Giriş Saldırı Radarı'],['m-politika','◈ Gözetimsiz Politika'],['m-kalici','◉ Kalıcılık Denetçisi'],['m-cihaz','⌬ Ağ Cihaz Envanteri'],['m-lisans','◈ Lisans'],['m-hesap','◍ Hesabım ve Kullanıcılar'],['m-cikis','⇄ Kullanıcı Değiştir'],['m-tema','◐ Tema: Koyu'],['m-kalkan','✦ Aktif Kalkanlarım'],['m-tuzak','⌖ Tuzaklar (Erken Uyarı)'],['m-nobet','◉ Nöbetçi Modu'],['m-acil','⚡ Acil İzolasyon'],['m-olay','▥ Olay Zaman Çizgisi'],['m-yardim','? Yardım'],['m-tur','▶ Tanıtım Turu'],['m-hakkinda','ⓘ Hakkımızda & Destek']];
+function winUzman(v){
+  const side=`<aside class="side"><div class="lg"><span style="color:#818CF8">⚡</span><div>BulutSoft<small>Security Suite v1.0</small></div></div>${MENU.map(([i,t])=>mi(i,t,i==='m-acil'?'red':(i==='m-panel'&&v==='panel')||(i==='m-yeni'&&v==='tarama')||(i==='m-trafik'&&v==='trafik')?'on':'')).join('')}</aside>`;
+  const top=`<div class="modsw" data-b="u-mod"><span class="pill g">● Kolay Görünüm (Önerilen)</span><span class="pill on">⚙ Uzman Görünümü</span></div>
+  <div class="row"><b style="font-size:10.5px">Hedef adres:</b>${inp('127.0.0.1',130,1)}${b('u-hedef-sec','◈ Hedef Seç / Sanal Lab Bul ▾')}<span style="margin-left:6px;font-size:10.5px">Profil:</span>${b('u-profil-hizli','Hızlı')}${b('u-profil-std','Standart','p')}${b('u-profil-kaps','Kapsamlı')}${b('u-gelismis','Gelişmiş ▾')}${b('u-baslat','⚡ TARAMAYI BAŞLAT','p')}${b('u-durdur','Durdur','r')}</div>
+  <div class="k4"><div class="kc"><small>TARANAN KAPI SAYISI</small><b>17 / 17</b></div><div class="kc" style="border-color:#06B6D4"><small>BULUNAN AÇIKLAR</small><b>4</b></div><div class="kc" style="border-color:#10B981"><small>GÜVENLİK PUANI</small><b>72 /100</b></div><div class="kc" style="border-color:#F59E0B"><small>GEÇEN SÜRE</small><b>00:08</b></div></div>
+  <div class="row"><div class="fl">${b('u-yesil','YEŞİL (Normal): 9','fy')}${b('u-sari','SARI/TURUNCU (Dikkat): 3','fs')}${b('u-kirmizi','KIRMIZI (Tehlike): 1','fk')}${b('u-tumu','[ Tümünü Göster ]')}</div><span style="flex:1"></span>${b('u-html','▤ HTML Rapor')}${b('u-pdf','▦ PDF Rapor')}${b('u-kanit','❖ Adli Kanıt Paketi','d')}</div>`;
+  let body='';
+  if(v==='panel'){
+    body=`<div class="panelst"><div class="tabs">${b('v-klasik','Klasik radar','')}${b('v-harita','Harita küresi','on')}<span style="flex:1"></span><span data-b="v-bilgi" style="font-size:10px;color:#FBBF24;align-self:center">Son 30 dk: 0 Kritik · 3 Uyarı (ışığa tıklayınca Olay Zaman Çizgisi açılır)</span></div><div class="viz">${GLOBE}<div class="lightc" data-b="v-isik" style="left:47%;top:35%"></div><div class="shield" data-b="v-kalkan" style="bottom:22px">✓</div><div data-b="v-ulke" style="position:absolute;left:51%;top:40%;width:60px;height:34px"></div><div data-b="v-dugum" style="position:absolute;left:72%;top:30%;width:30px;height:30px;border-radius:50%"></div></div></div>`;
+  } else if(v==='trafik'){
+    body=`<div class="split"><div class="tbl" style="flex:2"><div class="th" style="grid-template-columns:110px 1fr 90px"><span>Program</span><span>Uzak adres</span><span>Durum</span></div>${['chrome.exe|142.250.185.14:443|Kurulu','Teams.exe|52.113.194.132:443|Kurulu','svchost.exe|192.168.1.1:53|Bekliyor','OneDrive.exe|13.107.42.12:443|Kurulu'].map(r=>{const[p,a,s]=r.split('|');return `<div class="tr" style="grid-template-columns:110px 1fr 90px" data-b="${p==='chrome.exe'?'t-satir':''}"><span>${p}</span><span>${a}</span><span>${s}</span></div>`}).join('')}</div><div class="asis"><div class="h">Asistan</div><div>Bir satırı seçin; program sade Türkçe anlatır.</div>${lines(5)}</div></div>`;
+  } else {
+    body=`<div class="row">${inp('🔎 Sonuçlarda ara: örn. 445, SMB, hosts, USB …',280)}<span data-b="u-ara" style="width:1px"></span></div>
+    <div class="split"><div class="tbl"><div class="th"><span>Önem</span><span>Bulgu</span><span>Kategori</span></div>
+    <div class="tr" data-b="u-satir"><span><i class="sev k">KRİTİK</i></span><span>Açık port 445 (SMB)</span><span>Port</span></div>
+    <div class="tr"><span><i class="sev s">DİKKAT</i></span><span>Açık port 139 (NetBIOS)</span><span>Port</span></div>
+    <div class="tr"><span><i class="sev s">DİKKAT</i></span><span>HTTP güvenlik başlıkları eksik</span><span>Web</span></div>
+    <div class="tr"><span><i class="sev y">BİLGİ</i></span><span>TLS sertifikası geçerli</span><span>TLS</span></div></div>
+    <div class="asis"><div class="h">Siber İlk Yardım Asistanı</div><div>Açık port 445 (SMB): dosya paylaşımı kapısı dışarıya açık…</div>${lines(3)}<div class="row" style="flex-wrap:wrap;gap:4px">${b('a-yerel','◉ Yerel & Manuel Mod','g')}${b('a-claude','⚡ Claude API Modu')}${b('a-api','⚙ API Ayarı')}</div>${chk('a-tum','Tüm Tarama Özetini Analiz Et')}${b('a-kopyala','❐ Çözüm Komutunu Kopyala')}${b('a-onar','✚ Otomatik Onar (Güvenlik Duvarı Kuralı Ekle)','r')}${b('a-derin','◆ Claude AI ile Derin Analiz Et','p')}${b('a-prompt','❐ AI Danışman Metnini Hazırla ve Kopyala')}${b('a-altin','⚿ Güvenli Referans (Altın Profil) Olarak Kilitle','y')}</div></div>
+    <div data-b="u-sagtik" class="row" style="gap:6px"><span style="font-size:9.5px;color:#8896AB">Satıra sağ tık menüsü:</span>${b('u-kopya','Kopyala')}${b('u-masaustu','Masaüstüne Rapor')}</div>`;
+  }
+  const ddm=`<div class="ddm" id="ddm"><div class="ddi" data-b="u-hedef-yerel">Yerel Bilgisayarım (127.0.0.1)</div><div class="ddi" data-b="u-hedef-ag">Sanal Ağları Tara…</div></div>`;
+  const log=`<div class="log"><div>⚡ DENETİM MOTORU HAZIR -> Hedef: 127.0.0.1</div><div>PORT 445 AÇIK -> SMB bulundu, servis kimliği okunuyor...</div><div>KAPI YOKLAMA -> %100 (17/17)</div></div>`;
+  return `<div class="w"><div class="tb"><i></i>BulutSoft — Siber Güvenlik ve Ağ Denetim Merkezi — admin (Yönetici) — Sahip Lisansı<em>– ▢ ✕</em></div><div class="uzbody">${side}<section class="mainc" style="position:relative">${top}${body}${log}${ddm}</section></div></div>`;
+}
+function winKolay(v){
+  let inner='';
+  if(v==='ana'){
+    inner=`<div class="hd">Ne yapmak istersiniz?<small>Aşağıdan birini seçin; gerisini program sizin için yapar.</small></div>
+    <div class="cards"><div class="kcard" data-b="k-kart1"><u>🛡</u>Bilgisayarımı ve Şirketimi Kontrol Et</div><div class="kcard" data-b="k-kart2"><u>🌐</u>Bir Web Sitesini İncele ve Sahibine Bildir</div><div class="kcard" data-b="k-kart3"><u>📊</u>Durum Karnesi ve Resmi Rapor Al</div></div>
+    <div class="gl">${GLOBE}<div class="shield" data-b="k-kalkan" style="bottom:46px">✓</div><div data-b="k-ulke" style="position:absolute;left:52%;top:30%;width:70px;height:40px"></div><div class="banner">Koruma Hizmeti Çalışıyor<small>Bu bilgisayar 15 dakikada bir kontrol ediliyor · Yaylar örnek görseldir</small></div></div>
+    <div class="gosts"><div class="gost" data-b="k-gos0"><b>Kali Sensör</b><i style="background:#10B981"></i>Hazır</div><div class="gost" data-b="k-gos1"><b>IP Güvenlik Sızıntı Testi</b><i style="background:#F59E0B"></i>Henüz test edilmedi</div><div class="gost" data-b="k-gos2"><b>Bildirim Kanalı</b><i style="background:#94A3B8"></i>Kapalı</div><div class="gost" data-b="k-gos3"><b>Koruma Hizmeti</b><i style="background:#10B981"></i>Çalışıyor</div></div>`;
+  } else if(v==='calisiyor'){
+    inner=`<div class="hd" style="padding-top:90px">Bilgisayarınız kontrol ediliyor…<small>1/4 · Güvenlik ayarları, hesaplar ve başlangıç programları inceleniyor</small></div><div style="width:520px;height:12px;margin:22px auto;border-radius:6px;background:#1E293B;overflow:hidden"><div style="width:42%;height:100%;background:linear-gradient(90deg,#6366F1,#06B6D4)"></div></div><div style="text-align:center">${b('k-vazgec','Vazgeç','r')}</div>`;
+  } else {
+    inner=`<div style="padding:10px 30px;text-align:center"><div class="ring" style="border-color:#F59E0B">72</div><div style="font-size:19px;font-weight:700">Dikkat gerektiren yerler var</div><div style="color:#94A3B8;font-size:11px;margin:4px 0 10px">En önemli 3 adım aşağıda; her biri sade dille anlatılıyor.</div><div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px"><div class="kcard" style="max-width:230px;font-weight:400;font-size:10.5px;border-color:#EF4444">1. SMB kapısı dışarıya açık — gereksizse kapatın.</div><div class="kcard" style="max-width:230px;font-weight:400;font-size:10.5px;border-color:#F59E0B">2. Windows güncellemesi bekliyor.</div><div class="kcard" style="max-width:230px;font-weight:400;font-size:10.5px;border-color:#F59E0B">3. Yedekleme düzeni doğrulanmadı.</div></div><div class="row" style="justify-content:center">${b('karne-geri','Ana Ekrana Dön','d')}${b('karne-uzman','Ayrıntılar (Uzman Görünümü)','d')}</div><div style="margin-top:10px">${b('karne-mektup','Site Sahibine Gönderilecek Bilgilendirme Mektubunu Hazırla','g')}</div></div>`;
+  }
+  const mod=`<div style="position:absolute;left:8px;top:32px;z-index:3" class="modsw" data-b="k-mod"><span class="pill on" style="background:#12513A;border-color:#10B981">● Kolay Görünüm (Önerilen)</span><span class="pill">⚙ Uzman Görünümü</span></div><div style="position:absolute;left:8px;top:58px;z-index:3;display:flex;flex-direction:column;gap:2px;width:120px"><div class="mi on" data-b="k-panel">◼ Panel</div></div>`;
+  return `<div class="w kz"><div class="tb"><i></i>BulutSoft — Siber Güvenlik ve Ağ Denetim Merkezi — admin (Yönetici)<em>– ▢ ✕</em></div>${mod}<div style="flex:1;display:flex;flex-direction:column;min-height:0;position:relative">${inner}</div></div>`;
+}
+function dlg(o){
+  const nav=o.nav?`<div class="nav">${o.nav.map(n=>b(n[0],n[1],n[2]?'on':'')).join('')}</div>`:'';
+  const foot=o.foot?`<div class="ft">${o.foot.map(f=>b(f[0],f[1],f[2]||'')).join('')}</div>`:'';
+  const back=o.back==='kolay'?winKolay('ana'):winUzman(o.back||'tarama');
+  return `${back}<div class="dim"></div><div class="dlg" style="width:${o.w||640}px;height:${o.h||420}px"><div class="dt"><i style="width:9px;height:9px;border-radius:50%;background:#6366F1;display:inline-block"></i>${o.t}<em>✕</em></div><div class="db">${nav}<div class="bd2">${o.body||''}</div></div>${foot}</div>`;
+}
+const TBL=(h,rows,cols)=>`<div class="tbl" style="flex:none"><div class="th" style="grid-template-columns:${cols}">${h.map(x=>`<span>${x}</span>`).join('')}</div>${rows.map(r=>`<div class="tr" style="grid-template-columns:${cols}" ${r[0]&&r[0].startsWith('@')?'':''}>${r.map(x=>`<span>${x}</span>`).join('')}</div>`).join('')}</div>`;
+
+/* ================= Sahneler (ekranlar) ================= */
+const SCENES=[];
+function sc(id,t,grp,render){SCENES.push({id,t,grp,render,steps:[]});}
+sc('giris','Açılış ve Giriş Ekranı','Başlangıç',()=>dlg({t:'BulutSoft Security Suite — Giriş',w:560,h:330,back:'tarama',body:`<h5>Hoş geldiniz</h5>${inp('Kullanıcı adı: admin',300)}${inp('Parola: ••••••••••',300)}<span style="color:#8896AB;font-size:10px">Üst üste hatalı denemede hesap geçici kilitlenir.</span>${b('giris-tani','Tanılama Paketi Hazırla')}${b('giris-klasor','Kayıt Klasörünü Aç')}${b('giris-iletisim','İletişim')}`,foot:[['giris-tamam','Giriş Yap / Kurulumu Tamamla','y']]}));
+sc('kolay','Kolay Görünüm — Ana Ekran','Kolay Görünüm',()=>winKolay('ana'));
+sc('kolay-run','Kolay Görünüm — Canlı Tarama Ekranı','Kolay Görünüm',()=>winKolay('calisiyor'));
+sc('kolay-web','Kolay Görünüm — Web Sitesi İnceleme Pencereleri','Kolay Görünüm',()=>dlg({t:'Web Sitesini İncele',w:600,h:420,back:'kolay',body:`<h5>İncelemek istediğiniz sitenin adresini yazın</h5><span>Siteye hiç zarar verilmez; yalnızca dışarıdan bakılır.</span>${inp('Web sitesi adresi: ornek.com',360)}<h5 style="margin-top:6px">Derin Denetim: Bu Site Sizin mi?</h5><div class="row">${b('web-sahip-evet','Evet','g')}${b('web-sahip-hayir','Hayır')}</div><h5 style="margin-top:6px">Sahiplik doğrulaması</h5><div class="mono" style="flex:none;height:48px;color:#FDE68A">bulutsoft-site-dogrulama=3f9a…c21 (örnek)</div><div class="row">${b('sh-kopyala','Gizli Kodu Kopyala','d')}${b('sh-dogrula','Şimdi Doğrula','g')}${b('sh-vazgec','Vazgeç')}</div><h5 style="margin-top:6px">İnternet Sitesi İnceleme Onayı</h5><div class="row">${b('web-onay-evet','Evet, site sahibiyim / yazılı iznim var','g')}${b('web-onay-hayir','Hayır')}</div><div class="row">${b('web-duzeltme','Dosyayı Hazırla (Nginx / Apache)','d')}</div>`,foot:[['web-incele','İncele','y']]}));
+sc('karne','Kolay Görünüm — Güvenlik Karnesi','Kolay Görünüm',()=>winKolay('karne'));
+sc('mektup','Site Sahibine Bilgilendirme Mektubu','Kolay Görünüm',()=>dlg({t:'Site Sahibine Bilgilendirme Mektubu',w:720,h:420,back:'kolay',body:`<h5>Kime gönderilecek?</h5><div style="color:#4ADE80;font-weight:700">security@ornek.com</div>${b('mk-adres','Adresi Kopyala','d')}<h5>Gönderilecek nazik mesaj</h5><div class="mono" style="color:#C8D2DE">Merhaba, sitenizi yalnızca dışarıdan ziyaretçi gibi inceledik…\n[Adınız]</div>`,foot:[['mk-kopya','Mesajı Kopyala','g'],['mk-pdf','PDF Olarak İndir','d']]}));
+sc('uzman-menu','Uzman Görünüm — Sol Menü','Uzman Görünüm',()=>winUzman('tarama'));
+sc('uzman-tarama','Uzman Görünüm — Yeni Tarama (tablo + asistan)','Uzman Görünüm',()=>winUzman('tarama'));
+sc('uzman-panel','Uzman Görünüm — ◼ Panel (radar ve harita küresi)','Uzman Görünüm',()=>winUzman('panel'));
+sc('uzman-trafik','Uzman Görünüm — Canlı Ağ Trafiği','Uzman Görünüm',()=>winUzman('trafik'));
+sc('palet','Klavye Kısayolları ve Komut Paleti','Uzman Görünüm',()=>`${winUzman('tarama')}<div class="dim"></div><div class="dlg" style="width:560px;height:340px"><div class="dt">Komut Paleti (Ctrl+K)<em>✕</em></div><div class="bd2"><div class="row"><span class="kbd" data-b="kb-f5">F5</span><span class="kbd" data-b="kb-ctrlf">Ctrl+F</span><span class="kbd" data-b="kb-ctrlk">Ctrl+K</span><span class="kbd" data-b="kb-ctrld">Ctrl+D</span><span class="kbd" data-b="kb-ctrle">Ctrl+E</span><span class="kbd" data-b="kb-f1">F1</span></div>${inp('🔎 Komut ara…',480)}<div class="pal"><div class="it on" data-b="kp-sec">Taramayı başlat (F5)</div><div class="it">Sonuçlarda ara (Ctrl+F)</div><div class="it">Durum Panosu: puan, plan, özet, SIEM (Ctrl+D)</div><div class="it">Olay Zaman Çizgisi (Ctrl+E)</div><div class="it">Acil İzolasyon (onay sorar)</div></div></div></div>`);
+sc('onay','Onay ve Bilgi Pencereleri','Ortak',()=>dlg({t:'BulutSoft — Onay',w:520,h:280,back:'tarama',body:`<h5>Bu işlem sistemde değişiklik yapacak</h5><span>Ne olacağı açıkça yazılır; geri alma komutu da gösterilir. Varsayılan seçenek her zaman güvenli olan “Hayır”dır.</span>${lines(4)}`,foot:[['onay-hayir','Hayır'],['onay-evet','Evet','g']]}));
+sc('gecmis','Geçmiş Operasyonlar','Uzman Pencereleri',()=>dlg({t:'Geçmiş Operasyonlar',w:640,h:380,body:`${TBL(['Tarih','Hedef','Puan','Bulgu'],[['22.11 02:10','127.0.0.1','72','13'],['21.11 18:40','192.168.56.101','58','21'],['20.11 09:05','127.0.0.1','80','9']],'110px 1fr 60px 60px')}<span style="color:#8896AB">Program kapanıp açılsa da kayıtlar silinmez.</span>`,foot:[['gm-kapat','Kapat'],['gm-hepsi','Tümünü Sil','r'],['gm-sil','✖ Seçileni Sil'],['gm-yukle','▸ Ekrana Yükle','y']]}));
+sc('ag','Ağ Cihazı Seçimi (Sanal Ağları Tara)','Uzman Pencereleri',()=>dlg({t:'Ağ Taraması — Hedef Seç',w:600,h:360,body:`${TBL(['IP adresi','Ad / MAC','Tür'],[['192.168.56.101','kali (08:00:27:…)','VirtualBox'],['192.168.56.1','host-only','Ağ geçidi']],'150px 1fr 100px')}`,foot:[['ag-kapat','Kapat'],['ag-tara','↻ Yeniden Tara'],['ag-sec','✓ Seç ve Hedef Adrese Yaz','y']]}));
+sc('api','Claude API Ayarı','Uzman Pencereleri',()=>dlg({t:'Claude API Ayarı',w:600,h:340,back:'tarama',body:`<span>Anahtar yalnızca “Derin Analiz” istediğinizde Anthropic sunucusuna gönderilir.</span>${inp('sk-ant-… (yeni anahtar girmezseniz kayıtlı anahtar korunur)',520)}${inp('Model: claude-…',520)}`,foot:[['api-iptal','İptal'],['api-sil','Anahtarı Sil','r'],['api-kaydet','Kaydet','y']]}));
+sc('lisans','Lisans','Uzman Pencereleri',()=>dlg({t:'Lisans',w:620,h:380,back:'tarama',body:`<h5>Durum: Lisanslı</h5><div class="row">${inp('Makine kimliği: 7F3A-…-91C2',300,1)}${b('ls-kopyala','Kopyala','d')}</div>${b('ls-yukle','Lisans Dosyası Yükle…','d')}<h5>Yönetici araçları (Kali sanal makinesiyle)</h5>${b('ls-otorite','1) Lisans Otoritesini Kur','')}${b('ls-sahip','2) Bu Bilgisayar İçin Sahip Lisansı Üret','')}${b('ls-musteri','3) Müşteri Lisansı Üret…','')}`}));
+sc('tuzak','Tuzaklar (Erken Uyarı)','Uzman Pencereleri',()=>dlg({t:'⌖ Tuzaklar (Erken Uyarı)',w:660,h:400,back:'tarama',body:`<div class="row"><span style="width:200px">Honeypot (sahte SSH)</span>${inp('2222',60)}${b('tz-hp','Aç / Kapat','')}</div>${chk('tz-lab','Lab ağından (özel IP’lerden) gelen bağlantıları da dinle',0)}<div class="row"><span style="width:200px">Canary (sahte dosyalar)</span>${b('tz-cn','Aç / Kapat','')}</div><div class="row"><span style="width:200px">Fidye yazılımı alarmı</span>${b('tz-fy','Aç / Kapat','')}</div>${b('tz-avci','Süreç Avcısı’nı Aç','d')}`,foot:[['tz-kapat','Kapat']]}));
+sc('avci','Süreç Avcısı','Uzman Pencereleri',()=>dlg({t:'Süreç Avcısı',w:640,h:360,back:'tarama',body:`${TBL(['Süreç','PID','Yazma / sn'],[['unknown.exe','4821','312'],['chrome.exe','7710','4'],['OneDrive.exe','1204','2']],'1fr 80px 110px')}<span style="color:#8896AB">Hazır.</span>`,foot:[['sa-oldur','■ Seçili Süreci Sonlandır','r'],['sa-olc','▶ Ölç (8 sn)','g']]}));
+sc('kalkan','Aktif Kalkanlarım','Uzman Pencereleri',()=>dlg({t:'Aktif Kalkanlarım (Güvenlik Duvarı Kuralları)',w:640,h:340,back:'tarama',body:`${TBL(['Kural','Port','İşlem'],[['BulutSoft-Blok-445','TCP 445',b('kk-kilit','✓ Kilidi Aç (Kuralı Kaldır)','g')],['BulutSoft-Acil-3389','TCP 3389','✓ Kilidi Aç']],'1fr 90px 220px')}`,foot:[['kk-kapat','Kapat'],['kk-yenile','↻ Yenile']]}));
+sc('kullanici','Hesabım ve Kullanıcılar','Uzman Pencereleri',()=>dlg({t:'Hesabım ve Kullanıcılar',w:660,h:380,back:'tarama',body:`${b('kl-parola','Parolamı Değiştir','d')}${TBL(['Kullanıcı','Rol','Durum'],[['admin','Yönetici','Açık'],['analist1','Analist','Açık'],['izleyici1','İzleyici','Kapalı']],'1fr 120px 100px')}<div class="row" style="flex-wrap:wrap;gap:5px">${b('kl-ekle','Kullanıcı Ekle')}${b('kl-rol','Rol Değiştir')}${b('kl-sifre','Parola Sıfırla')}${b('kl-devre','Kapat / Aç')}${b('kl-sil','Sil','r')}${b('kl-kurulum','Kurulum Şifresini Değiştir')}</div>`}));
+sc('hakkinda','Hakkımızda ve Destek','Uzman Pencereleri',()=>dlg({t:'Hakkımızda & Destek',w:620,h:380,back:'tarama',body:`<h5>BulutSoft Güvenlik Teknolojileri</h5>${lines(5)}${b('hk-eposta','✉ E-Posta Adresini Kopyala','d')}${b('hk-yenile','↻ Zafiyet Veritabanını Yenile','d')}`,foot:[['hk-kapat','Kapat']]}));
+sc('tur','Tanıtım Turu (3 adım)','Uzman Pencereleri',()=>dlg({t:'Tanıtım Turu',w:540,h:260,back:'tarama',body:`<h5>Adım 1 / 3</h5>${lines(4)}`,foot:[['tr-kapat','Turu Kapat'],['tr-geri','◀ Geri'],['tr-ileri','İleri ▶','y']]}));
+sc('sensor','Uzak Sensörler (Sanal Makine)','Uzman Pencereleri',()=>dlg({t:'Uzak Sensörler (Sanal Makine)',w:760,h:430,back:'tarama',nav:[['sn-liste','Kali Lab',1]],body:`${inp('Ad: Kali Lab',320)}${inp('Adres: 192.168.56.101',320)}${inp('Kullanıcı: kali',320)}${inp('Anahtar: …\\id_ed25519',320)}<div class="row" style="flex-wrap:wrap;gap:4px">${b('sn-yeni','Yeni')}${b('sn-kaydet','Kaydet')}${b('sn-sil','Sil','r')}${b('sn-anahtar','Anahtar Üret')}${b('sn-ortak','Ortak Anahtarı Göster')}${b('sn-sina','Bağlantıyı Sına','g')}</div><div class="row">${inp('IP veya aralık: 192.168.56.0/24',260)}${b('sn-tara','▶ Sensörden Port Taraması','p')}${b('sn-durdur','■ Durdur','r')}</div><div class="mono" style="min-height:70px">22/tcp açık ssh OpenSSH 9.x</div>`}));
+sc('kalici','Kalıcılık Denetçisi','Uzman Pencereleri',()=>dlg({t:'Kalıcılık Denetçisi',w:700,h:400,back:'tarama',body:`<div class="row">${chk('kc-ms','Microsoft imzalıları gizle',1)}${chk('kc-risk','Yalnızca riskliler (Orta ve üstü)',0)}</div>${TBL(['Öğe','Konum','İmza','Risk'],[['updater.exe','Run anahtarı','Yok','Yüksek'],['OneDrive','Başlangıç','Microsoft','Düşük']],'1fr 120px 90px 70px')}<div class="mono" style="min-height:48px">Bir satır seçin: komut, konum ve risk nedeni burada görünür.</div>`,foot:[['kc-konum','Dosya Konumunu Aç'],['kc-degistir','⏻ Devre Dışı Bırak / Yeniden Etkinleştir','r'],['kc-tara','▶ Tara ve İmzaları Doğrula','g']]}));
+sc('politika','Gözetimsiz Politika','Uzman Pencereleri',()=>dlg({t:'Gözetimsiz Politika',w:660,h:380,back:'tarama',body:`${TBL(['Sınıf','Durum'],[['Süreli IP engeli','KAPALI'],['Otomatik yeniden doğrulama','KAPALI']],'1fr 120px')}<span style="color:#8896AB">Her sınıf varsayılan KAPALI. Bir sınıf seçin.</span>`,foot:[['gz-yenile','Yenile'],['gz-onizle','Kararı Önizle'],['gz-kapat','Kapat (tek tık)','r'],['gz-ac','Etkinleştir…','y']]}));
+sc('brute','Giriş Saldırı Radarı','Uzman Pencereleri',()=>dlg({t:'Giriş Saldırı Radarı',w:700,h:400,back:'tarama',body:`<div class="row">${chk('br-ssh','Sensör SSH günlüğü',1)}${chk('br-oto','Her 60 sn’de otomatik yenile',0)}${inp('Eşik: 5 hatalı deneme',140)}</div>${TBL(['IP','Hatalı deneme','Kaynak'],[['203.0.113.9','42','Windows 4625'],['198.51.100.4','17','SSH günlüğü']],'1fr 120px 130px')}`,foot:[['br-eski','⌛ Eskileri Kaldır'],['br-engel','⛔ Seçilenleri Engelle','r'],['br-tara','▶ Tara','g']]}));
+sc('cihaz','Ağ Cihaz Envanteri','Uzman Pencereleri',()=>dlg({t:'Ağ Cihaz Envanteri',w:700,h:380,back:'tarama',body:`${TBL(['IP','MAC','Durum'],[['192.168.1.12','AA:BB:…','Güvenilir'],['192.168.1.77','CC:DD:…','Yeni!']],'150px 1fr 110px')}`,foot:[['cz-kapat','Kapat'],['cz-sifirla','Envanteri Sıfırla','r'],['cz-cikar','✖ Seçiliyi Envanterden Çıkar'],['cz-guven','✓ Seçiliyi Güvenilir İşaretle'],['cz-tara','↻ Ağı Şimdi Tara','g']]}));
+sc('olay','Olay Zaman Çizgisi','Uzman Pencereleri',()=>dlg({t:'Olay Zaman Çizgisi',w:700,h:380,back:'tarama',body:`${TBL(['Zaman','Tür','Seviye','Mesaj'],[['22.11 03:26','Sistem','Uyarı','NÖBETÇİ UYARI -> koruma kapalı'],['22.11 03:26','Tuzak','Bilgi','TUZAK -> Önceki oturumdaki fidye alarmı…']],'100px 80px 70px 1fr')}`,foot:[['ol-kapat','Kapat'],['ol-yenile','↻ Yenile'],['ol-csv','▤ CSV Olarak Dışa Aktar','d']]}));
+sc('bulgu','Bulgu Ayrıntısı — Yanlış Alarm','Uzman Pencereleri',()=>dlg({t:'Bulgu Sonucu',w:620,h:320,back:'tarama',body:`<h5>Açık port 445 (SMB)</h5>${lines(3)}${inp('Neden yanlış alarm? (isteğe bağlı)',480)}`,foot:[['bs-isaret','Yanlış Alarm İşaretle / Geri Al','y']]}));
+sc('harita','Ağ Haritası','Uzman Pencereleri',()=>dlg({t:'Ağ Haritası',w:760,h:420,back:'tarama',body:`${TBL(['Cihaz','Hizmet','Ağırlık'],[['192.168.56.101','OpenSSH 9.x (22)','0,8'],['192.168.56.20','nginx 1.24 (80)','0,6']],'1fr 1fr 80px')}<div class="row" style="flex-wrap:wrap;gap:4px">${b('ah-tara','▶ Sensörden Tara','g')}${b('ah-iptal','Durdur','r')}${b('ah-yerel','▶ Bu Bilgisayarı Denetle')}${b('ah-katalog','KB Kataloğu Yükle…')}${b('ah-web','Aktif Web Denetimi…')}${b('ah-kev','KEV Listesini İndir…')}${b('ah-nvd','NVD Verisi Yükle…')}</div>`,foot:[['ah-kalite','Kural Kalitesi…'],['ah-anarapor','Ana Rapora Ekle'],['ah-rapor','Derin Denetim Raporu…','d']]}));
+sc('durum','Durum Panosu','Uzman Pencereleri',()=>dlg({t:'Durum Panosu',w:760,h:430,back:'tarama',nav:[['dp-pano','▦ Pano',1],['dp-plan','✔ Düzeltme Planı'],['dp-ozet','✎ Yönetici Özeti'],['dp-karsi','⇄ Karşılaştır'],['dp-siem','⇪ SIEM Çıktısı']],body:`<h5>Güvenlik puanı trendi: 58 → 72</h5>${lines(4)}<div class="row" style="flex-wrap:wrap;gap:4px">${b('dp-html','⇩ HTML Olarak Kaydet','d')}${b('dp-yk','⇩ Yönetim Kurulu Risk Özeti (1 Sayfa)','d')}${b('dp-etik','⇩ Etik Açık Bildirim Raporu','d')}${b('dp-karsilastir','⇄ Karşılaştır')}${b('dp-karsi-html','⇩ Karşılaştırmayı HTML Kaydet','d')}${b('dp-cef','⇪ CEF Olarak Kaydet')}${b('dp-json','⇪ JSON Lines Olarak Kaydet')}</div>`}));
+sc('arac','Güvenlik Araç Kutusu','Uzman Pencereleri',()=>dlg({t:'Güvenlik Araç Kutusu',w:880,h:470,back:'tarama',nav:[['ak-link','◈ Link Analizi',1],['ak-eklenti','◫ Tarayıcı Eklentileri'],['ak-kara','⊘ Kara Liste (IP)'],['ak-parola','⚿ Parola Sızıntısı'],['ak-politika','✓ Parola Politikası'],['ak-fim','▤ Dosya Bütünlüğü'],['ak-hash','# Özet (Hash) Hesapla'],['ak-dosya','⌕ Dosya İnceleyici'],['ak-filo','▦ Filo Raporu'],['ak-vaka','✎ Vaka Defteri'],['ak-duvar','▦ Duvar Yedeği'],['ak-sistem','✦ Sistem ve Koruma']],body:`<span style="color:#8896AB">Seçili sayfanın düğmeleri (her sayfa ayrı çalışır):</span><div class="row" style="flex-wrap:wrap;gap:4px">${[['ai-analiz','Analiz Et'],['ai-eklenti','Eklentileri Tara'],['ai-ipkontrol','IP Kontrol Et'],['ai-baglanti','Bağlantılarımı Tara'],['ai-liste','Listeyi Düzenle'],['ai-sizinti','Sızıntıda Mı? (İnternete Sorar)'],['ai-politika','Politikayı Kaydet'],['ai-gozat','Gözat…'],['ai-temel','Temel Oluştur'],['ai-fimkarsi','Karşılaştır (klasör)'],['ai-hesap','Hesapla'],['ai-hashdur','Durdur'],['ai-hashkarsi','Karşılaştır (özet)'],['ai-hashkopya','Sonucu Kopyala'],['ai-incele','İncele'],['ai-raporkaydet','Raporu Kaydet'],['ai-kopya','Kopyala'],['ai-filorapor','Rapor Oluştur'],['ai-filoac','Raporu Aç'],['ai-yenivaka','Yeni Vaka'],['ai-not','Not Ekle'],['ai-vakadurum','Durumu Kaydet'],['ai-metne','Metne Aktar'],['ai-yedek','Yedek Al (Yönetici İzni)'],['ai-geri','Seçiliyi Geri Yükle'],['ai-muhurle','Ayar Dosyalarını Mühürle'],['ai-muhurdogrula','Mühürleri Doğrula'],['ai-tani','Tanılama Paketi Hazırla'],['ai-webhook','Bildirim Kanalı (Webhook)…']].map(x=>b(x[0],x[1])).join('')}</div>`}));
+sc('merkez','Sensör ve Bildirim Merkezi','Uzman Pencereleri',()=>dlg({t:'Sensör ve Bildirim Merkezi',w:880,h:470,back:'tarama',nav:[['mk-kali','Kali Sensör Durumu',1],['mk-ip','IP Sızıntı Testi'],['mk-bildirim','Bildirim Kanalları'],['mk-konsol','Kali Konsol (Uzman)'],['mk-nmap','Nmap Komutu (Uzman)'],['mk-rehber','Kali Araç Rehberi (Uzman)']],body:`<div class="row" style="flex-wrap:wrap;gap:4px">${b('mc-tekrar','Yeniden Dene')}${b('mc-uyandir','Sanal Makineyi Başlat…')}${b('mc-sensor','Sensör Ayarları (SSH)…')}${b('mc-sizinti','Testi Başlat…','g')}${b('mc-test','Test Mesajı Gönder','d')}${b('mc-kaydet','Ayarları Kaydet','g')}${b('mc-temizle','Temizle')}${b('mc-kopyala','Kopyala')}${b('mc-haritada','Ağ Haritası’nda Tara…','d')}${b('mc-calistir','Seçili Şablonu Çalıştır','p')}${b('mc-durdur','Durdur','r')}</div><div class="mono" style="min-height:90px">Sensör hazır · son kontrol 03:26</div>`}));
+sc('tepsi','Sistem Tepsisi ve Bildirim Balonu (Nöbetçi Modu)','Ortak',()=>`${winUzman('tarama')}<div class="tray"><div class="tmenu"><div data-b="tp-ac">▣ Pencereyi Aç</div><div data-b="tp-simdi">↻ Şimdi Kontrol Et</div><div data-b="tp-kapat">◉ Nöbetçi Modunu Kapat</div><div data-b="tp-cik">✖ Çıkış</div></div><div class="tbar" data-b="tp-balon">🛡 <span>Nöbetçi: yeni açık kapı bulundu (3389)</span></div></div>`);
+
+/* ================= Adımlar (her biri bir tıklanabilir öğe) ================= */
+function A(scene,id,label,act,arka,cikti,o){o=o||{};SCENES.find(s=>s.id===scene).steps.push({id,label,act,arka,cikti,y:o.y,n:o.n,st:o.st||'',stt:o.stt||'ok'});}
+
+/* --- Giriş --- */
+A('giris','giris-tamam','Giriş Yap / Kurulumu Tamamla','Giriş penceresinde kullanıcı adı ve parolayı yazıp düğmeye tıklar (ilk kurulumda aynı düğme “Kurulumu Tamamla” olur).',
+["Güvenlik|Açılışta kimlik durumu okunur: Yok (ilk kurulum) · Hazır (giriş) · Bozuk (program güvenlik gereği açılmaz).","Güvenlik|kimlik.json bütünlük mührüyle doğrulanır; koruma hizmeti kuruluysa mühür HKLM kaydında da ayrıca tutulur.","Güvenlik|Parola PBKDF2-SHA256 (600.000 tur) ile özetlenip kayıtlı özetle karşılaştırılır; düz yazı parola tutulmaz.","Güvenlik|5 hatalı denemeden sonra hesap 30 sn kilitlenir, her yeni hatada süre katlanır (en çok 15 dk); kilit olayı günlüğe yazılır.","Veri|Başarılıysa hatalı sayaç sıfırlanır ve “Giriş yapıldı: ad (rol)” olay günlüğüne yazılır.","UI|Oturum.Aktif atanır, ana pencere açılır; menü ve düğmeler rolün yetkisine göre kapılanır."],
+"Ana pencere açılır (son kullanılan mod: Kolay veya Uzman). Hatalı parolada kırmızı uyarı ve varsa kalan kilit süresi görünür. Kimlik dosyası bozuksa program açılmaz ve kurtarma yönergesi gösterilir.",{n:"Roller: İzleyici (yalnız görür), Analist, Yönetici. Yetkisiz eylemde düğme çalışmaz, nedeni anlatılır."});
+A('giris','giris-tani','Tanılama Paketi Hazırla','Giriş ekranının destek bölümünde bu düğmeye tıklar.',["Dosya|TanilamaPaketi.Olustur masaüstüne tanılama paketi yazar.","UI|Pakete yazılan dosya yolu bir bilgi penceresinde gösterilir."],"“Tanılama paketi hazır” mesajı ve masaüstündeki dosya yolu görünür; destek ekibine gönderilir.");
+A('giris','giris-klasor','Kayıt Klasörünü Aç','Destek bölümünde bu düğmeye tıklar.',["Dosya|%AppData%\\BulutSoft klasörü yoksa oluşturulur.","Servis|explorer.exe bu klasörü açar (ayar, kayıt ve çökme dosyaları burada durur)."],"Windows Gezgini kayıt klasöründe açılır.");
+A('giris','giris-iletisim','İletişim','Destek bölümünde “İletişim” düğmesine tıklar.',["UI|HakkindaFormu modal olarak açılır."],"Hakkımızda ve Destek penceresi açılır (e-posta adresi, güvenlik ilkesi).");
+
+/* --- Kolay ana --- */
+A('kolay','k-mod','Mod anahtarı: Kolay ⇄ Uzman','Üstteki anahtarda diğer moda tıklar.',["UI|ArayuzModu.Ayarla(mod) çağrılır; Değişti olayı ModuUygula’yı tetikler.","UI|Kolay modda ana tablo gizlenir, Kolay panel görünür; sol menüde yalnızca Kolay kümesine ait öğeler kalır.","Dosya|Seçim tercih dosyasına yazılır, bir sonraki açılışta hatırlanır."],"Ekran anında diğer görünüme geçer; Kolay modda 3 büyük kart, küre ve 4 durum göstergesi, Uzman modda tam menü ve tablo.");
+A('kolay','k-kart1','Kart: Bilgisayarımı ve Şirketimi Kontrol Et','Kolay Görünümde ilk karta tıklar.',["UI|Ana ekran gizlenir, canlı tarama ekranı açılır; iptal belirteci (CancellationToken) hazırlanır.","Servis|1/4 SistemDenetimi.Hepsi: güvenlik ayarları, hesaplar ve başlangıç programları (yalnız okuma).","Ağ|2/4 Bu bilgisayarın dinleyen portları okunur; 21, 23, 135, 139, 445, 1433, 3306, 3389, 5432, 5900 ağdan erişilebiliyorsa bulgu üretilir (yalnız yerel dışı adresler).","Servis|3/4 Yerel denetim akışı: hizmetler, Windows güncellemeleri, yazılımlar, program korumaları; bilgi bankası, NVD ve KEV verisiyle eşleştirilir; yanlış alarm işaretleri uygulanır.","Veri|4/4 Sonuç Uzman tabloya da yazılır, geçmişe kaydedilir, puan ve karne hesaplanır.","UI|“Kontrol tamamlandı” bildirimi gösterilir ve karne ekranı açılır."],
+"Konuşan ilerleme ekranı (yüzde ve adım cümleleri) sonra karne: puan halkası, en önemli 3 adım. İptal edilirse ana ekrana dönülür.",{st:"Karne ekranı",y:"Yetki: Tarama",n:"Yalnızca bu bilgisayar denetlenir; hiçbir ayar değiştirilmez."});
+A('kolay','k-kart2','Kart: Bir Web Sitesini İncele ve Sahibine Bildir','İkinci karta tıklar; açılan pencereye site adresini yazar.',["UI|Adres sorulur; adres çözümlenir ve sınıflandırılır (yalnız internet siteleri kabul edilir; iç ağ adresi reddedilir ve doğru karta yönlendirilir).","Güvenlik|“Bu site sizin mi?” sorulur (varsayılan Hayır). Evet ise sahiplik kanıtı istenir ve nazik DERİN denetim açılır.","Güvenlik|Onay penceresi: yalnız dışarıdan, ziyaretçi gibi bakılacağı yazılır; kamu/askeri/eğitim benzeri adreslerde hukuki uyarı eklenir; günlük gözlem hakkı kontrol edilir.","Ağ|PasifToplayici: ana sayfa, HTTP başlıkları, TLS sertifikası, e-posta (SPF/DMARC) kayıtları ve security.txt okunur.","Ağ|Derin denetimde saniyede en çok 2 istek ve toplam 300’den az istekle gizli dosya/yönetim sayfası/dizin listeleme sondaları yapılır; içerikler saklanmaz.","Veri|Bulgular kurallarla değerlendirilir, tabloya yazılır; derin modda Apache/Nginx düzeltme dosyası önerilir."],
+"İlerleme ekranı, ardından karne ve “Site Sahibine Gönderilecek Bilgilendirme Mektubunu Hazırla” düğmesi görünür.",{st:"Karne + mektup",n:"Siteye giriş yapılmaz, parola denenmez, veri değiştirilmez."});
+A('kolay','k-kart3','Kart: Durum Karnesi ve Resmi Rapor Al','Üçüncü karta tıklar.',["UI|Henüz kontrol yoksa “Önce bir kontrol yapın” uyarısı verilir ve işlem durur.","UI|Kaydetme penceresi açılır: 1 sayfalık yönetim özeti (.html) veya ayrıntılı rapor (.pdf).","Dosya|HTML için YonetimKuruluRaporu.Html, PDF için RaporUretici.PdfYaz (QuestPDF) çalışır.","UI|“Karne kaydedildi” bildirimi gösterilir."],"Seçilen yere rapor yazılır; başarı balonunda dosya adı görünür, yazılamazsa nedeni bir pencerede anlatılır.");
+A('kolay','k-gos0','Gösterge: Kali Sensör','Alt şeritteki ilk göstergeye tıklar.',["Güvenlik|Yetki kontrolü: Eylem.Gorme.","UI|Sensör ve Bildirim Merkezi, “Kali Sensör Durumu” sekmesinde açılır.","Veri|Pencere kapanınca dört gösterge yeniden okunur ve boyanır."],"Merkez penceresi açılır; sensörün durumu, yeniden deneme ve sanal makineyi başlatma düğmeleri görünür.");
+A('kolay','k-gos1','Gösterge: IP Güvenlik Sızıntı Testi','İkinci göstergeye tıklar.',["UI|Merkez penceresi “IP Sızıntı Testi” sekmesinde açılır.","Ağ|(Testi başlatırsanız) dış IP’yi gösteren servislerle bilgisayarın ve sensörün çıkış adresleri karşılaştırılır."],"Test sonucu ve son değer göstergede renkle (yeşil/sarı/kırmızı) görünür.");
+A('kolay','k-gos2','Gösterge: Bildirim Kanalı','Üçüncü göstergeye tıklar.',["UI|Merkez penceresi “Bildirim Kanalları” sekmesinde açılır.","Veri|Telegram / Discord / Teams kanal ayarları ve test mesajı düğmeleri gösterilir."],"Kanal durumu (Açık/Kapalı) ve ayar formu görünür.");
+A('kolay','k-gos3','Gösterge: Koruma Hizmeti','Dördüncü göstergeye tıklar.',["Güvenlik|Pilot (salt okunur) modda yalnız bilgi verir.","Servis|Hizmet kurulu değilse nasıl kurulacağı anlatılır (kurulum paketi veya HizmetKur.ps1).","Servis|Hizmet kurulu ama yanıt vermiyorsa “yönetici izniyle başlatılsın mı?” sorulur; Evet ise UAC ile başlatılır.","Servis|Hizmet çalışıyorsa “run-check-now” isteği boru üzerinden gönderilir; sonuç günlüğe düşer."],"Duruma göre bilgi penceresi, UAC isteği veya günlükte “anlık yoklama istendi” satırı.",{y:"Yetki: Koruma"});
+A('kolay','k-kalkan','Küre ortasındaki koruma kalkanı','Küredeki kalkan simgesine tıklar.',["Güvenlik|Pilot modda düğme pasiftir; nedeni durum satırında yazılır.","Servis|Koruma hizmeti çalışıyorsa “set-watchdog” ile nöbetçi ve fidye izleme AÇILIR/KAPATILIR (kalıcı).","Servis|Hizmet yoksa arayüzdeki Nöbetçi Modu açılıp kapanır.","UI|Kalkan ve durum bandı yeni duruma göre renk/simge değiştirir."],"Kalkan yeşil onay, sarı ünlem, kırmızı çarpı veya duraklat simgesi gösterir; günlüğe satır düşer.",{y:"Yetki: Koruma"});
+A('kolay','k-ulke','Küre: ülke üzerine gelme (hover) ve tıklayıp odaklanma','İmleci küre üzerindeki bir ülkenin üstüne getirir, tıklar; tekrar tıklayınca geri döner.',["UI|WebView2 içindeki canvas, imlecin altındaki noktayı d3 ile coğrafi koordinata çevirip hangi ülke olduğunu bulur.","UI|Ülkenin gerçek sınır şekli parlar; harita döndükçe vurgu ülkeyle birlikte kayar.","UI|Tıklayınca küre ülkenin merkezine yumuşakça döner ve yakınlaşır; aynı ülkeye tekrar tıklayınca eski konuma döner.","UI|İmleç 8 sn dışarıda kalırsa odak otomatik geri alınır ve küre yeniden dönmeye başlar."],"Parlayan ülke şekli ve kendi konumunda yazan ülke adları. Kalkana tıklama bu etkileşimden ayrıdır.");
+A('kolay','k-panel','Sol menü: Panel (Kolay modda)','Kolay modda “Panel” düğmesine tıklar.',["UI|btnMenuPanel Kolay modda _kolay.AnaGoster() çağırır; çalışan ilerleme ve karne ekranları gizlenir."],"Ana ekrana (3 kart + küre + göstergeler) dönülür.");
+
+/* --- Çalışan tarama --- */
+A('kolay-run','k-vazgec','Vazgeç','Canlı tarama ekranında “Vazgeç” düğmesine tıklar.',["Servis|İptal belirteci iptal edilir; çalışan denetimler ThrowIfCancellationRequested ile sıradaki adımda durur.","UI|Yüzde zamanlayıcısı durur, ekran ana kartlara döner."],"Hiçbir karne üretilmez; ana ekran yeniden görünür.");
+
+/* --- Karne --- */
+A('karne','karne-geri','Ana Ekrana Dön','Karne ekranında düğmeye tıklar.',["UI|AnaGoster: karne gizlenir, ana ekran gösterilir."],"3 kartın bulunduğu ana ekran görünür; karne verisi Geçmiş Operasyonlar’da kayıtlı kalır.");
+A('karne','karne-uzman','Ayrıntılar (Uzman Görünümü)','“Ayrıntılar (Uzman Görünümü)” düğmesine tıklar.',["UI|UzmanaGec: ArayuzModu.Uzman seçilir ve Tarama görünümü açılır.","Veri|Kolay denetimin bulguları zaten Uzman tabloya yazılmıştır (rapor ve geçmiş aynı veriyi görür)."],"Uzman Görünümde sonuç tablosu ve asistan açılır.");
+A('karne','karne-mektup','Site Sahibine Mektubu Hazırla','Yalnızca web incelemesi sonrası görünen yeşil düğmeye tıklar.',["Veri|MektupMetni.Uret pasif gözlem bulgularından nazik mesaj üretir; alıcı için sitenin security.txt dosyasına bakılır.","UI|MektupFormu açılır."],"Mektup penceresi açılır; program kendisi hiçbir şey göndermez.");
+
+/* --- Mektup --- */
+A('mektup','mk-adres','Adresi Kopyala','Sol paneldeki düğmeye tıklar (alıcı bulunduysa etkindir).',["UI|Alıcı adresleri (mailto: ön eki atılmış) panoya kopyalanır."],"“Adres kopyalandı” bildirimi görünür.");
+A('mektup','mk-kopya','Mesajı Kopyala','Sağ alttaki düğmeye tıklar.',["UI|Düzenlenebilir mektup metni panoya kopyalanır."],"“Mesaj kopyalandı; e-posta programınıza yapıştırabilirsiniz” bildirimi.",{n:"[Adınız] gibi köşeli parantezli yerleri göndermeden önce düzenleyin."});
+A('mektup','mk-pdf','PDF Olarak İndir','PDF düğmesine tıklar.',["UI|Kaydet penceresi açılır (Bilgilendirme_Mektubu_site_tarih.pdf).","Dosya|EtikBildirim.PdfYaz mektubu PDF olarak yazar."],"“PDF kaydedildi” bildirimi; hata olursa nedeni pencerede görünür.");
+
+/* --- Web akışı --- */
+A('kolay-web','web-incele','İncele (adres penceresi)','Site adresini yazıp “İncele”ye tıklar.',["UI|SoruFormu adresi alır; https:// eklenir ve ana makine adı çıkarılır.","Ağ|Adres 10 sn zaman aşımıyla sınıflandırılır: internet sitesi mi, iç ağ mı, bulunamadı mı."],"Geçersiz adreste “Adres anlaşılamadı”, iç ağda yönlendirme mesajı; geçerliyse sıradaki sorulara geçilir.");
+A('kolay-web','web-sahip-evet','“Bu site sizin mi?” — Evet','Soruda “Evet”e tıklar (varsayılan seçenek Hayır’dır).',["Güvenlik|Bu oturumda doğrulanmışsa tekrar sorulmaz.","UI|Aksi hâlde Sahiplik penceresi açılır; doğrulanamazsa derin denetim kapatılır ve bilgi verilir."],"Doğrulama başarılıysa derin denetim açılır; değilse yalnız dışarıdan bakılır.");
+A('kolay-web','web-sahip-hayir','“Bu site sizin mi?” — Hayır','Soruda “Hayır”a tıklar.',["Güvenlik|Yalnızca dışarıdan, sıradan bir ziyaretçi gibi bakılacak kip seçilir."],"Onay penceresine geçilir.");
+A('kolay-web','sh-kopyala','Gizli Kodu Kopyala','Sahiplik penceresinde düğmeye tıklar.',["UI|Sitede yayınlayacağınız gizli doğrulama kodu panoya kopyalanır."],"Pencerede “Gizli kod panoya kopyalandı” yazar.");
+A('kolay-web','sh-dogrula','Şimdi Doğrula','Kodu siteye/DNS’e koyduktan sonra düğmeye tıklar.',["Ağ|Sitedeki dosya ya da DNS kaydı 40 sn zaman aşımıyla okunur.","Güvenlik|Kod eşleşirse bu oturum için ana makine “sahipliği doğrulandı” işaretlenir."],"Başarıda pencere kapanır ve derin denetim açılır; değilse “Doğrulanamadı” nedeniyle birlikte yazılır.");
+A('kolay-web','sh-vazgec','Vazgeç','Sahiplik penceresinde “Vazgeç”e tıklar.',["Servis|Süren doğrulama iptal edilir, pencere kapanır."],"“Derin denetim kapalı; yalnızca dışarıdan bakılabilir” bilgisi görünür.");
+A('kolay-web','web-onay-evet','İnceleme onayı — Evet','Onay penceresinde “Evet”e tıklar.',["Güvenlik|Site sahibi olduğunuzu ya da yazılı izniniz bulunduğunu onaylamış sayılırsınız.","Veri|Günlük gözlem hakkı kontrol edilir; hak yoksa “Biraz bekleyin” denir."],"Konuşan ilerleme ekranı başlar (1/4 … 4/4).",{n:"Kamu/askeri/eğitim kurumu benzeri adreslerde ek hukuki uyarı gösterilir."});
+A('kolay-web','web-onay-hayir','İnceleme onayı — Hayır','Onay penceresinde “Hayır”a tıklar.',["UI|İşlem hiçbir ağ isteği yapılmadan sonlanır."],"Ana ekrana dönülür.");
+A('kolay-web','web-duzeltme','Düzeltme Dosyasını Hazırla','Derin denetimden sonra Nginx/Apache seçip “Dosyayı Hazırla”ya tıklar.',["Veri|Önerisi olan bulgular için hazır sunucu ayarları tek metinde toplanır.","Dosya|Kaydet penceresiyle .txt/.conf yazılır; hiçbir sunucuya dokunulmaz, otomatik uygulanmaz."],"“Düzeltme dosyası kaydedildi — uygulamadan önce yedek alın” bildirimi.");
+
+/* --- Uzman menü --- */
+const M=(id,label,y,arka,cikti,n)=>A('uzman-menu',id,label,'Sol menüde “'+label.replace(/^[^ ]+ +/,'')+'” düğmesine tıklar.',arka,cikti,{y:y,n:n});
+M('m-panel','◼ Panel',null,["UI|GorunumSec(Radar): radar/harita küresi görünür, tablo ve asistan gizlenir.","Veri|RadarYenile: bulgulardaki “Port N” ifadelerinden düğümler üretilir (kritik/uyarı/güvenli)."],"◼ Panel: üstte “Klasik radar | Harita küresi” seçimi, altında seçili görünüm.");
+M('m-yeni','⚡ Yeni Tarama',null,["UI|Tablo + asistan görünümüne geçilir (tarama sürüyorsa yalnız görünüm değişir).","UI|Ekranda sonuç varsa “önceki sonuçlar temizlensin mi?” sorulur (varsayılan Hayır).","Veri|Evet ise bulgu listesi, tablo, sayaçlar ve kronometre sıfırlanır; önceki taramalar Geçmiş’te kalır."],"Temiz bir tablo ve hedef kutusuna odak.");
+M('m-gecmis','◷ Geçmiş Operasyonlar',null,["UI|GecmisFormu modal açılır; kayıtlar program kapansa da duran dosyadan okunur.","Veri|“Ekrana Yükle” denirse YukleKayit tabloyu, kartları, sayaçları ve asistanı eski taramayla doldurur (tarama sürerken engellenir)."],"Geçmiş taramaların listesi.");
+M('m-rapor','▤ Profesyonel Rapor',null,["Dosya|miMasaustu akışı: BulutSoft markalı renkli rapor üretilir.","Dosya|Web sayfası (.html) ve PDF masaüstüne kaydedilir; web sayfası tarayıcıda açılır."],"Masaüstünde HTML ve PDF raporu; tarayıcıda rapor sayfası.");
+M('m-durum','▦ Durum Panosu',null,["UI|DurumFormu açılır: Pano, Düzeltme Planı, Yönetici Özeti, Karşılaştır, SIEM Çıktısı sekmeleri.","Veri|Puan trendi ve düzeltme planı kayıtlı geçmişten hesaplanır (MITRE ATT&CK etiketli)."],"Durum Panosu penceresi (kısayol: Ctrl+D).");
+M('m-trafik','◈ Canlı Ağ Trafiği',null,["UI|GorunumSec(Trafik): dgvTrafik görünür, TrafikZamanla(true) yenilemeyi başlatır.","Servis|Bu bilgisayarın TCP bağlantıları hangi program, hangi adrese bağlı olarak listelenir."],"Canlı bağlantı tablosu; satır seçince sağdaki asistan sade Türkçe anlatır.");
+M('m-arac','▣ Güvenlik Araç Kutusu',null,["UI|AracKutusuFormu 12 sayfa ile açılır (Link Analizi … Sistem ve Koruma)."],"Araç Kutusu penceresi.");
+M('m-sensor','◉ Uzak Sensörler (VM)',null,["UI|SensorFormu açılır: kayıtlı sanal makine sensörleri, anahtar üretme, bağlantı sınama, port taraması."],"Uzak Sensörler penceresi.");
+M('m-harita','▦ Ağ Haritası',null,["UI|AgHaritasiFormu açılır; her tarama onay ister ve yalnız özel ağ taranır."],"Ağ Haritası penceresi.");
+M('m-merkez','◉ Sensör ve Bildirim Merkezi','Yetki: Görme',["Güvenlik|MerkezAc: Eylem.Gorme kontrol edilir.","UI|MerkezFormu “Kali Sensör Durumu” sekmesinde açılır; kapanınca Kolay göstergeler yenilenir."],"Merkez penceresi.");
+M('m-brute','◎ Giriş Saldırı Radarı',null,["UI|BruteForceFormu açılır; Windows olay 4625 ve sensördeki SSH günlüğü taranır."],"Giriş Saldırı Radarı penceresi.");
+M('m-politika','◈ Gözetimsiz Politika',null,["UI|GozetimsizFormu açılır; bu pencere sistemi değiştirmez, yalnız politika sınıflarını yönetir."],"Gözetimsiz Politika penceresi.");
+M('m-kalici','◉ Kalıcılık Denetçisi',null,["UI|KaliciFormu açılır; başlangıç öğeleri imza ve risk bilgisiyle listelenir."],"Kalıcılık Denetçisi penceresi.");
+M('m-cihaz','⌬ Ağ Cihaz Envanteri',null,["UI|CihazFormu açılır; yalnızca kendi özel ağınız taranır."],"Cihaz envanteri penceresi.");
+M('m-lisans','◈ Lisans',null,["UI|LisansFormu açılır: durum, Makine Kimliği, lisans yükleme (ECDSA imzası çevrimdışı doğrulanır)."],"Lisans penceresi.","Lisans bittiğinde yalnızca yeni tarama başlatma kısıtlanır.");
+M('m-hesap','◍ Hesabım ve Kullanıcılar',null,["UI|KullaniciFormu açılır: parola değiştirme; Yöneticiye kullanıcı yönetimi."],"Hesap penceresi.");
+M('m-cikis','⇄ Kullanıcı Değiştir',null,["Servis|Oturum kapatılır ve program “--oturum-degisti” bağımsız değişkeniyle yeniden başlatılır.","Servis|Yeni kopya, eski kopyanın kapanması için tek kopya kilidini 15 sn bekler.","UI|Açılış ekranı atlanır, doğrudan giriş penceresi gelir."],"Giriş ekranı; başka kullanıcıyla girilebilir.");
+M('m-tema','◐ Tema: Koyu',null,["UI|TemaYonetici.Degistir: mod Koyu⇄Açık çevrilir ve tema.json’a yazılır.","UI|Açık pencerelerin tümü yeniden boyanır; özel çizimli kontroller ve küre sayfası da yeni temayı alır."],"Tüm arayüz anında seçilen temaya geçer; tercih giriş ekranında da geçerli olur.");
+M('m-kalkan','✦ Aktif Kalkanlarım','Yetki: Koruma',["Güvenlik|Eylem.Koruma kontrolü.","Servis|KalkanFormu Güvenlik Duvarı’ndaki BulutSoft kurallarını listeler.","UI|Pencere kapanınca Acil İzolasyon düğmesinin durumu Windows’a sorularak tazelenir."],"Kural listesi; her satırda “Kilidi Aç (Kuralı Kaldır)”.");
+M('m-tuzak','⌖ Tuzaklar (Erken Uyarı)','Yetki: Koruma',["UI|TuzakFormu: honeypot, canary dosyaları, fidye alarmı ve Süreç Avcısı düğmeleri."],"Tuzaklar penceresi.");
+M('m-nobet','◉ Nöbetçi Modu','Yetki: Koruma',["Servis|Açılırken tepsi simgesi gösterilir ve durum kaydedilir.","Servis|İlk kontrol sessizce yapılır; şimdiki durum “temel” olur.","Servis|15 dakikalık zamanlayıcı başlar: 127.0.0.1 kapıları yoklanır; yeni açık kapı veya puan düşüşünde balonla uyarır.","UI|Düğme rengi “Nöbetçi: Açık” olur; kapatınca tepsi simgesi gizlenir."],"Günlükte “NÖBETÇİ MODU -> AÇIK” ve tepsi simgesi.","Gerçek zamanlı koruma değildir; program kapanırsa izleme durur (hizmet varsa hizmet sürdürür).");
+M('m-acil','⚡ Acil İzolasyon','Yetki: Sistem değiştirme',["Güvenlik|Eylem.SistemDegistir kontrolü; çift tıklamaya karşı düğme geçici kilitlenir.","UI|Ne olacağı yazan onay penceresi (varsayılan Hayır).","Servis|Onayda tek UAC izniyle 21, 23, 135, 139, 445, 3389 ve 5900 numaralı gelen kapılar “BulutSoft-Acil-” kurallarıyla engellenir.","Servis|Kuralların gerçekten eklendiği Windows’a yeniden sorularak doğrulanır; ikinci basış kuralları kaldırır."],"Düğme kırmızı “izolasyon açık” durumuna geçer; günlükte “ACİL İZOLASYON” satırları.");
+M('m-olay','▥ Olay Zaman Çizgisi',null,["UI|OlayFormu açılır; olaylar zincirli HMAC’li günlükten (yerel + hizmet) okunur."],"Olay listesi (kısayol: Ctrl+E).");
+M('m-yardim','? Yardım',null,["UI|“Bu program ne işe yarar?” metni TemaliMesaj ile gösterilir; yalnız özel ağ adreslerinin taranabileceği yazar."],"Yardım penceresi (kısayol: F1).");
+M('m-tur','▶ Tanıtım Turu',null,["UI|TurFormu açılır (3 adım)."],"Tanıtım Turu penceresi.");
+M('m-hakkinda','ⓘ Hakkımızda & Destek',null,["UI|HakkindaFormu açılır."],"Hakkımızda ve Destek penceresi.");
+
+/* --- Uzman tarama --- */
+A('uzman-tarama','u-mod','Mod anahtarı (Uzman → Kolay)','Üstteki Kolay Görünüm düğmesine tıklar.',["UI|ArayuzModu.Ayarla(Kolay); Uzman tablo gizlenir, Kolay panel görünür."],"Kolay Görünüm ana ekranı açılır.");
+A('uzman-tarama','u-hedef-sec','Hedef Seç / Sanal Lab Bul ▾','Düğmeye tıklar.',["UI|ctxHedef açılır menüsü düğmenin altında gösterilir: Yerel Bilgisayarım, Sanal Ağları Tara."],"İki öğeli menü açılır.");
+A('uzman-tarama','u-profil-hizli','Profil: Hızlı','“Hızlı” düğmesine tıklar.',["UI|ProfilSec(0): kapı kutusu en yaygın 8 kapıyla, kontrol kutuları hızlı profile göre doldurulur.","UI|Elle ayar değişirse profil otomatik “Özel” olur."],"Saniyeler süren hafif tarama için kutular hazırlanır.");
+A('uzman-tarama','u-profil-std','Profil: Standart (önerilen)','“Standart” düğmesine tıklar.',["UI|ProfilSec(1): 17 yaygın kapı + web/isim kontrolleri seçilir."],"Dengeli varsayılan değerler yüklenir.");
+A('uzman-tarama','u-profil-kaps','Profil: Kapsamlı','“Kapsamlı” düğmesine tıklar.',["UI|ProfilSec(2): 1–1024 arası tüm kapılar ve daha fazlası seçilir."],"Uzun sürecek ayrıntılı tarama için kutular doldurulur.");
+A('uzman-tarama','u-gelismis','Gelişmiş ▾','Düğmeye tıklar.',["UI|GelismisAc(!tblGel.Visible): kapı numaraları, web adresi, form parametresi, alan adı ve kontrol kutuları (kapı yoklama, zayıf ayar, HTTP, TLS, DNS, form kutusu testi) açılır/kapanır."],"Ayrıntılı ayar paneli görünür ya da gizlenir.");
+A('uzman-tarama','u-hedef-yerel','Menü: Yerel Bilgisayarım','Hedef menüsünde ilk öğeye tıklar.',["UI|Adres kutusu 127.0.0.1 olur; durum çubuğuna ve günlüğe “Hedef: Yerel bilgisayar” yazılır."],"Hedef kutusunda 127.0.0.1.");
+A('uzman-tarama','u-hedef-ag','Menü: Sanal Ağları Tara','Hedef menüsünde ikinci öğeye tıklar.',["UI|AgFormu modal açılır; sanal ağlardaki makineler otomatik bulunur.","UI|Seçilen IP adres kutusuna yazılır."],"Ağ cihazı listesi penceresi, seçimden sonra hedef kutusu dolar.");
+A('uzman-tarama','u-baslat','⚡ TARAMAYI BAŞLAT','Hedefi ve kontrolleri seçip düğmeye tıklar (kısayol F5).',["Güvenlik|Eylem.Tarama yetkisi ve lisans (yalnız yeni tarama kısıtlanır) kontrol edilir.","Güvenlik|LabKapsam.DogrulaVeCozAsync: hedef özel/izinli ağda mı? Değilse hata verilir ve durulur; genel internet hedefi yalnız pasif gözlem akışına yönlenir.","Ağ|Kapı yoklama (gerekirse seçili sensörden SSH ile): her kapı için ilerleme çubuğu; açık kapıda servis kimliği okunur.","Servis|Seçili kutulara göre sırayla: zayıf ayarlar, HTTP korumaları, TLS sertifikası, DNS/hosts, form kutusu testi; her biri hata verirse diğerleri sürer.","Veri|Her bulgu tabloya eklenir, sayaçlar/puan/kronometre güncellenir; sonuç Geçmiş’e kaydedilir.","UI|Günlükte canlı satırlar akar; bitince sonuç tablosu ve asistan dolar."],"İlerleme çubuğu, canlı günlük ve renkli sonuç tablosu; bittiğinde puan kartı güncellenir.",{y:"Yetki: Tarama"});
+A('uzman-tarama','u-durdur','Durdur','Tarama sürerken “Durdur”a tıklar.',["Servis|İptal belirteci iptal edilir; çalışan kapı yoklaması ve denetimler durur."],"O ana kadar bulunanlar tabloda kalır.");
+A('uzman-tarama','u-yesil','Filtre: YEŞİL (Normal)','Yeşil sayaç kutusuna tıklar.',["UI|FiltreSec(Yesil): tablo yalnız yeşil (bilgi) satırları gösterir; tekrar tıklayınca filtre kalkar."],"Tabloda yalnız yeşil sonuçlar kalır.");
+A('uzman-tarama','u-sari','Filtre: SARI/TURUNCU (Dikkat)','Sarı kutuya tıklar.',["UI|FiltreSec(Sari): yalnız dikkat gerektirenler gösterilir."],"Tabloda yalnız sarı/turuncu sonuçlar kalır.");
+A('uzman-tarama','u-kirmizi','Filtre: KIRMIZI (Tehlike)','Kırmızı kutuya tıklar.',["UI|FiltreSec(Kirmizi): yalnız kritik bulgular gösterilir."],"Tabloda yalnız kırmızı sonuçlar kalır.");
+A('uzman-tarama','u-tumu','[ Tümünü Göster ]','Bağlantıya tıklar.',["UI|Filtre Yok olur, FiltreyiUygula tüm satırları geri getirir."],"Tüm sonuçlar yeniden görünür.");
+A('uzman-tarama','u-ara','Sonuçlarda ara (Ctrl+F)','Arama kutusuna yazar.',["UI|Yazdıkça tablo, renk filtresiyle birlikte yalnız kelimeyi içeren satırlara indirilir."],"Eşleşen sonuçlar kalır.");
+A('uzman-tarama','u-satir','Tablo satırına tıklama','Sonuç satırına tıklar.',["UI|Seçili Bulgu’nun açıklaması, riski ve çözüm komutu Siber İlk Yardım Asistanı’na yazılır (Yerel mod: Türkçe bilgi bankası).","UI|Satırın portu yerel makineyse Otomatik Onar düğmesi etkinleşir."],"Sağda sade Türkçe açıklama ve çözüm önerisi.");
+A('uzman-tarama','u-kopya','Sağ tık: Kopyala','Satıra sağ tıklayıp “Kopyala”yı seçer.',["UI|Seçili satırın metni panoya kopyalanır."],"Panoda satır metni.");
+A('uzman-tarama','u-masaustu','Sağ tık: Masaüstüne rapor','Sağ tık menüsünde ikinci öğeye tıklar.',["Dosya|Profesyonel Rapor ile aynı akış: HTML ve PDF masaüstüne yazılır, HTML tarayıcıda açılır."],"Masaüstünde rapor dosyaları.");
+A('uzman-tarama','u-html','▤ HTML Rapor İndir','Düğmeye tıklar.',["UI|Sonuç yoksa “Önce taramayı başlatın” uyarısı verilir.","UI|Farklı Kaydet penceresi açılır.","Dosya|RaporUretici.HtmlYaz seçilen yola web sayfası raporunu yazar."],"Durum çubuğunda “Rapor kaydedildi: …”; hata olursa neden penceresi.");
+A('uzman-tarama','u-pdf','▦ PDF Rapor İndir','Düğmeye tıklar.',["UI|Farklı Kaydet penceresi açılır.","Dosya|RaporUretici.PdfYaz (QuestPDF) yazdırılabilir PDF’i yazar."],"“Rapor kaydedildi” satırı.");
+A('uzman-tarama','u-kanit','❖ Adli Kanıt Paketi (.ZIP)','Düğmeye tıklar.',["UI|Sonuç yoksa paketin boş sonuç bölümüyle hazırlanacağı sorulur (varsayılan Hayır).","Dosya|HTML rapor geçici dosyaya yazılır; ağır iş Task.Run ile arka planda çalışır.","Dosya|Tarama sonuçları, aktif bağlantılar, açık kapılar, hosts özeti, sistem bilgisi ve HTML rapor tarih damgalı .zip’e paketlenir; her dosyanın SHA-256 parmak izi yazılır; masaüstüne konur.","Veri|Operatör adı ve rolü pakete işlenir."],"Masaüstünde tarih damgalı .zip; durum çubuğunda yol.");
+A('uzman-tarama','a-yerel','Asistan: Yerel & Manuel Mod (Ücretsiz)','Düğmeye tıklar.',["UI|ModSec(false): internetsiz, programın kendi Türkçe bilgi bankası açıklama ve komut üretir."],"Asistan yerel modda çalışır; hiçbir veri dışarı çıkmaz.");
+A('uzman-tarama','a-claude','Asistan: Claude API Modu','Düğmeye tıklar.',["UI|ModSec(true): derin analiz düğmeleri etkinleşir.","Güvenlik|Anahtar yoksa veya kredi biterse program kendiliğinden Yerel moda döner."],"Claude modu seçilir.");
+A('uzman-tarama','a-api','⚙ API Ayarı','Düğmeye tıklar.',["UI|ApiAyarFormu açılır."],"API anahtarı penceresi.");
+A('uzman-tarama','a-tum','Tüm Tarama Özetini Analiz Et (onay kutusu)','Kutuyu işaretler.',["UI|İşaretliyse analiz tüm tarama sonuçlarını, değilse seçili satırı kapsar."],"Analiz kapsamı değişir.");
+A('uzman-tarama','a-kopyala','❐ Çözüm Komutunu Kopyala','Düğmeye tıklar.',["UI|Asistandaki komut panoya kopyalanır; yönetici PowerShell’e veya hedef Linux terminaline yapıştırılabilir."],"Komut panoya kopyalanır.");
+A('uzman-tarama','a-onar','✚ Otomatik Onar (Güvenlik Duvarı Kuralı Ekle)','Yerel hedefte bir port satırı seçip düğmeye tıklar.',["Güvenlik|Eylem.SistemDegistir; yalnız bu bilgisayar ve geçerli port için çalışır.","Servis|“BulutSoft-Blok-{port}” kuralı zaten var mı diye bakılır (yönetici izni gerekmez).","UI|Kural adı, yön, işlem, port ve geri alma komutu yazan onay penceresi (varsayılan Hayır).","Servis|Onayda UAC ile gelen bağlantıyı ENGELLE kuralı eklenir ve doğrulanır."],"Kural eklendi mesajı; Aktif Kalkanlarım’da görünür.",{y:"Yetki: Sistem değiştirme"});
+A('uzman-tarama','a-derin','◆ Claude AI ile Derin Analiz Et','Düğmeye tıklar.',["UI|Analiz sürüyorsa tıklama onu durdurur; tarama yoksa uyarılır.","Güvenlik|Kayıtlı API anahtarı (DPAPI ile şifreli) okunur; yoksa ayar penceresi açılır, girilmezse Yerel moda dönülür.","Güvenlik|Göndermeden önce onay istenir.","Ağ|Bulgu özeti api.anthropic.com’a akış halinde gönderilir; yanıt canlı olarak kutuya yazılır."],"Sade açıklama ve savunma/kapatma komutları kutuya canlı akar.",{n:"Yalnız siz istediğinizde ve onayınızla dış sunucuya veri gider."});
+A('uzman-tarama','a-prompt','❐ AI Danışman Metnini Hazırla ve Kopyala','Düğmeye tıklar.',["Veri|Tüm açıklar, portlar ve sistem durumu ayrıntılı Türkçe bir soru metnine çevrilir.","UI|Metin panoya kopyalanır; istenen yapay zeka sohbetine yapıştırılır."],"Panoda hazır soru metni.");
+A('uzman-tarama','a-altin','⚿ Altın Profil olarak kilitle','Temiz bir taramadan sonra düğmeye tıklar.',["Güvenlik|Tarama sürüyorsa veya sonuç yoksa uyarılır; kritik bulgu varsa “temiz sayılmaz” diye ayrıca sorulur.","Veri|Mevcut profil varsa Evet: yeniden kilitle · Hayır: kaldır · İptal.","Dosya|AltinProfilDeposu seçilen durumu altin_profil.json olarak kaydeder.","Veri|Sonraki taramalar bu referansla kıyaslanır; yeni açılan kapı uyarı üretir."],"Altın Profil durum satırı güncellenir.");
+
+/* --- Panel / küre --- */
+A('uzman-panel','v-klasik','Klasik radar','“Klasik radar” düğmesine tıklar.',["UI|HaritaKureSec(false): GDI+ ile çizilen radar görünür, WebView2 küre gizlenir."],"Ortada hedef, çevresinde son taramanın gerçek kapı düğümleri.");
+A('uzman-panel','v-harita','Harita küresi','“Harita küresi” düğmesine tıklar.',["UI|HaritaKureSec(true): Kolay Görünümdeki aynı kure.html sayfası WebView2’de açılır.","Servis|8 sn’lik zamanlayıcı olay günlüğünü arka planda okur ve ışığı tazeler.","UI|WebView2 açılamazsa panel otomatik klasik radara döner ve nedeni yazar."],"Dönen küre, ülke adları, örnek yaylar ve bildirim ışığı.");
+A('uzman-panel','v-isik','Bildirim ışığı','Kürede yanıp sönen ışığa tıklar (üstüne gelince son olay mesajı görünür).',["Veri|Son 30 dk’daki YALNIZCA Uyarı ve Kritik olaylar sayılır; Bilgi olayları ışık yakmaz.","UI|Kritik varsa kırmızı, yoksa sarı; olay kayıtlarında konum olmadığı için ışık programın çalıştığı yerde (Ankara) yanar; Türkiye arkadaysa kürenin kenarında işaret görünür.","UI|Tıklayınca Olay Zaman Çizgisi açılır."],"Tooltip: “2 Kritik · 3 Uyarı (son 30 dk)” ve son olay mesajı; tıklayınca olay listesi.");
+A('uzman-panel','v-kalkan','Küre kalkanı (Uzman)','Kürenin alt-ortasındaki kalkana tıklar.',["Servis|Kolay Görünümdeki kalkanla aynı akış: hizmet çalışıyorsa nöbetçi + fidye izleme hizmette açılıp kapanır; yoksa arayüzdeki Nöbetçi Modu."],"Kalkan simgesi yeni duruma geçer.",{y:"Yetki: Koruma"});
+A('uzman-panel','v-ulke','Küre: ülke vurgusu, zoom ve odaklanma','Ülke üzerine gelir, tekerlekle yakınlaştırır, tıklar.',["UI|Kolay Görünümdeki küre ile birebir aynı etkileşim: hover vurgusu, tekerlekle imleç altına yakınlaşma, tıklayınca odaklanma.","UI|İmleç küre dışındayken küre kendiliğinden döner."],"Parlayan ülke şekli ve küre üzerinde yazılı ülke adları.");
+A('uzman-panel','v-dugum','Radar düğümüne tıklama (Klasik radar)','Radardaki bir kapı düğümüne tıklar.',["UI|RadarDugumTiklandi: Tarama görünümüne geçilir, filtre kaldırılır.","UI|O kapıya ait en tehlikeli satır bulunup tabloda seçilir."],"Tabloda ilgili kapının satırı seçili ve asistanda açıklaması.");
+
+/* --- Trafik --- */
+A('uzman-trafik','t-satir','Trafik satırı','Bir bağlantı satırına tıklar.',["UI|Seçili bağlantı için asistan sade Türkçe açıklama üretir (hangi program, hangi adres, neden)."],"Sağdaki asistan paneli satırı anlatır.");
+
+/* --- Kısayollar --- */
+const K=(id,l,a,arka,c)=>A('palet',id,l,a,arka,c);
+K('kb-f5','F5','F5 tuşuna basar.',["UI|ProcessCmdKey: tarama boştaysa btnBaslat.PerformClick()."],"Tarama başlar.");
+K('kb-ctrlf','Ctrl+F','Ctrl+F’ye basar.',["UI|Tarama görünümü açılır, arama kutusuna odaklanılır ve metin seçilir."],"Arama kutusu hazır.");
+K('kb-ctrlk','Ctrl+K','Ctrl+K’ya basar.',["UI|KomutPaletiAc: menü komutları ve ek komutlar listelenir; yazdıkça süzülür."],"Komut Paleti açılır.");
+K('kb-ctrld','Ctrl+D','Ctrl+D’ye basar.',["UI|btnMenuDurum tetiklenir."],"Durum Panosu açılır.");
+K('kb-ctrle','Ctrl+E','Ctrl+E’ye basar.',["UI|btnMenuOlay tetiklenir."],"Olay Zaman Çizgisi açılır.");
+K('kb-f1','F1','F1 tuşuna basar.',["UI|btnMenuYardim tetiklenir."],"Yardım penceresi açılır.");
+K('kp-sec','Palette bir komuta çift tıklama / Enter','Listede bir komuta çift tıklar veya Enter’a basar.',["UI|Seçilen komutun eylemi (ilgili menü düğmesinin PerformClick’i) çalıştırılır; palet kapanır."],"Seçilen menü komutu çalışır.");
+
+/* --- Onay --- */
+A('onay','onay-evet','Onay penceresi: Evet','“Evet”e tıklar.',["Güvenlik|Yalnızca kullanıcı onayladığında sistem değiştiren eylem (firewall kuralı, tuzak, izolasyon vb.) çalıştırılır.","Servis|Gerekiyorsa Windows UAC penceresi ayrıca yönetici izni ister."],"İşlem yapılır, durum ve günlük güncellenir.");
+A('onay','onay-hayir','Onay penceresi: Hayır / varsayılan','“Hayır”a tıklar (varsayılan odak her zaman güvenli seçenektedir).',["Güvenlik|Hiçbir değişiklik yapılmaz."],"“… iptal edildi; hiçbir değişiklik yapılmadı” satırı.");
+
+/* --- Geçmiş --- */
+A('gecmis','gm-yukle','▸ Ekrana Yükle','Bir kayıt seçip düğmeye tıklar.',["UI|Pencere OK ile kapanır; Form1.YukleKayit tabloyu, kartları, sayaçları ve asistanı eski taramayla doldurur (tarama sürüyorsa engellenir)."],"Seçilen eski tarama ekrana gelir.");
+A('gecmis','gm-sil','✖ Seçileni Sil','Düğmeye tıklar.',["Veri|Seçili geçmiş kaydı depodan silinir (onaylı)."],"Liste güncellenir.");
+A('gecmis','gm-hepsi','Tümünü Sil','Düğmeye tıklar.',["Veri|Tüm geçmiş kayıtları silinir (onay ister)."],"Liste boşalır.");
+A('gecmis','gm-kapat','Kapat','Düğmeye tıklar.',["UI|DialogResult.Cancel ile kapanır."],"Pencere kapanır.");
+/* --- Ağ --- */
+A('ag','ag-sec','✓ Seç ve Hedef Adrese Yaz','Bir cihaz seçip düğmeye tıklar.',["UI|SecilenIp ana pencereye döner ve hedef kutusuna yazılır; durum satırında bilgi verilir."],"Hedef kutusunda seçilen IP.");
+A('ag','ag-tara','↻ Yeniden Tara','Düğmeye tıklar.',["Ağ|Sanal ağlardaki (VirtualBox/VMware/yerel ağ) açık makineler yeniden keşfedilir."],"Liste yenilenir.");
+A('ag','ag-kapat','Kapat','Düğmeye tıklar.',["UI|Pencere seçim yapılmadan kapanır."],"Hedef değişmez.");
+/* --- API --- */
+A('api','api-kaydet','Kaydet','Anahtarı ve modeli yazıp düğmeye tıklar.',["Güvenlik|Anahtar DPAPI (yalnız bu Windows kullanıcısı açabilir) ile şifrelenerek saklanır; boş bırakılırsa kayıtlı anahtar korunur."],"Pencere kapanır, ayar kaydedilir.");
+A('api','api-sil','Anahtarı Sil','Düğmeye tıklar.',["Veri|ApiDeposu.AnahtarSil kayıtlı anahtarı siler."],"Anahtar kutusu boşalır, durum “anahtar yok” olur.");
+A('api','api-iptal','İptal','Düğmeye tıklar.',["UI|Değişiklik yapılmadan kapanır."],"Pencere kapanır.");
+/* --- Lisans --- */
+A('lisans','ls-kopyala','Makine Kimliğini Kopyala','Kopyala düğmesine tıklar.',["UI|Lisans.MakineKimligi() panoya kopyalanır."],"“Makine kimliği panoya kopyalandı.”");
+A('lisans','ls-yukle','Lisans Dosyası Yükle…','Düğmeye tıklar ve .bslic dosyası seçer.',["Güvenlik|Çok büyük dosya reddedilir; ECDSA imzası ve makine/süre kontrol edilir (çevrimdışı).","Dosya|Geçerliyse lisans.bslic kaydedilir."],"“Lisans yüklendi.” ya da neden yazan “Lisans kabul edilmedi”.");
+A('lisans','ls-otorite','1) Lisans Otoritesini Kur','Yönetici olarak düğmeye tıklar.',["Servis|Kali sanal makinesinde imza anahtarı çifti kurulur; genel anahtar lisans_otorite.pem olarak alınır."],"Otorite kurulduğu bilgisi.",);
+A('lisans','ls-sahip','2) Bu Bilgisayar İçin Sahip Lisansı Üret','Düğmeye tıklar.',["Servis|Lisans verisi sensörde imzalatılır (ECDSA), dosya makineye yazılır."],"Sahip lisansı yüklenir.");
+A('lisans','ls-musteri','3) Müşteri Lisansı Üret…','Düğmeye tıklar.',["UI|Müşteri adı, makine kimliği ve süre sorulur.","Servis|Lisans sensörde imzalatılıp dosya olarak üretilir."],"Müşteriye verilecek lisans dosyası.");
+/* --- Tuzak --- */
+A('tuzak','tz-hp','Honeypot Aç / Kapat','Kapı numarası (örn. 2222) yazıp düğmeye tıklar.',["Güvenlik|Açık değilse sayı doğrulanır ve onay istenir (sahte SSH, gerçek hizmet açılmaz; varsayılan Hayır).","Servis|Honeypot kapıyı dinler; bağlananlar yalnız kaydedilir.","UI|Açıksa tek tıkla kapatılır."],"Günlükte “TUZAK -> Honeypot kapısı açıldı”; dokunulursa uyarı.");
+A('tuzak','tz-lab','Lab ağını da dinle (onay kutusu)','Kutuyu işaretler.',["Güvenlik|Dinleme yalnız bu bilgisayarın içinden mi, lab ağı adreslerinden de mi gelsin seçilir."],"Onay metninde seçim yazılır.");
+A('tuzak','tz-cn','Canary Aç / Kapat','Düğmeye tıklar.',["Güvenlik|Onay: Belgeler altında bir klasöre 3 sahte dosya (parolalar.txt, banka_bilgileri.txt, ozel_anahtar_yedek.txt) konacağı yazılır.","Dosya|Başlatınca dosyalar oluşturulur ve izlenir; kapatınca silinir."],"Dosyalara dokunulursa uyarı; kapatınca “n sahte dosya silindi”.");
+A('tuzak','tz-fy','Fidye Alarmı Aç / Kapat','Düğmeye tıklar.',["Güvenlik|Onay: izlenecek klasörler listelenir; yalnız dosya değişikliklerinin SAYISI izlenir, içeriğe bakılmaz.","Servis|Kısa sürede çok sayıda değişiklik fidye davranışı şüphesi olarak alarm üretir."],"“FİDYE YAZILIMI DAVRANIŞI ŞÜPHESİ” uyarısı (gerçekleşirse).");
+A('tuzak','tz-avci','Süreç Avcısı’nı Aç','Düğmeye tıklar.',["UI|SurecAvciFormu açılır."],"Süreç Avcısı penceresi.");
+A('tuzak','tz-kapat','Kapat','Düğmeye tıklar.',["UI|Tuzaklar penceresi kapanır; açık tuzaklar çalışmaya devam eder."],"Pencere kapanır.");
+/* --- Süreç avcısı --- */
+A('avci','sa-olc','▶ Ölç (8 sn)','Düğmeye tıklar.',["Servis|8 sn boyunca süreçlerin dosya yazma sayısı ölçülür (ETW yazma kaynağı)."],"En çok yazan süreçler sıralanır.");
+A('avci','sa-oldur','■ Seçili Süreci Sonlandır','Süreç seçip düğmeye tıklar.',["Güvenlik|Windows’un kendi süreçleri ve koruma hizmeti gibi korunan süreçler sonlandırılamaz.","Servis|Korumaya takılmazsa süreç sonlandırılır."],"Sonlandı mesajı ya da korumanın nedeni.");
+/* --- Kalkan --- */
+A('kalkan','kk-kilit','✓ Kilidi Aç (Kuralı Kaldır)','Satırdaki düğmeye tıklar.',["Servis|Seçili BulutSoft güvenlik duvarı kuralı yönetici izniyle kaldırılır."],"Kural listeden düşer.",{y:"Yetki: Sistem değiştirme"});
+A('kalkan','kk-yenile','↻ Yenile','Düğmeye tıklar.',["Servis|GuvenlikDuvari.Listele Windows’a yeniden sorulur."],"Liste güncellenir.");
+A('kalkan','kk-kapat','Kapat','Düğmeye tıklar.',["UI|Pencere kapanır; Acil İzolasyon düğmesinin durumu tazelenir."],"Pencere kapanır.");
+/* --- Kullanıcı --- */
+A('kullanici','kl-parola','Parolamı Değiştir','Düğmeye tıklar.',["Güvenlik|Eski parola doğrulanır; yeni parola politikaya uyuyorsa PBKDF2 ile özetlenip kimlik.json’a yazılır, mühür yenilenir."],"“Parola değiştirildi” bildirimi.");
+A('kullanici','kl-ekle','Kullanıcı Ekle','Yönetici düğmeye tıklar.',["Güvenlik|Ad, rol ve parola alınır; kimlik dosyası mühürle birlikte güncellenir ve olay yazılır."],"Listede yeni kullanıcı.",{y:"Yetki: Yönetim"});
+A('kullanici','kl-rol','Rol Değiştir','Kullanıcı seçip düğmeye tıklar.',["Güvenlik|İzleyici / Analist / Yönetici arasında rol değişir; olay günlüğüne yazılır."],"Rol sütunu güncellenir.",{y:"Yetki: Yönetim"});
+A('kullanici','kl-sifre','Parola Sıfırla','Düğmeye tıklar.',["Güvenlik|Seçili kullanıcıya yeni parola atanır; hatalı deneme sayacı sıfırlanır."],"Kullanıcı yeni parolayla girer.",{y:"Yetki: Yönetim"});
+A('kullanici','kl-devre','Kapat / Aç','Düğmeye tıklar.',["Güvenlik|Hesap devre dışı bırakılır ya da yeniden açılır."],"Durum sütunu değişir.",{y:"Yetki: Yönetim"});
+A('kullanici','kl-sil','Sil','Düğmeye tıklar.',["Güvenlik|Onayla kullanıcı kaydı silinir; son yönetici silinemez (korunur)."],"Kullanıcı listeden düşer.",{y:"Yetki: Yönetim"});
+A('kullanici','kl-kurulum','Kurulum Şifresini Değiştir','Düğmeye tıklar.',["Güvenlik|Kurulum şifresi (tuz + özet) yenilenir; gözetimsiz politika etkinleştirme gibi işlemler bunu ister."],"Kurulum şifresi güncellenir.",{y:"Yetki: Yönetim"});
+/* --- Hakkında --- */
+A('hakkinda','hk-eposta','✉ E-Posta Adresini Kopyala','Düğmeye tıklar.',["UI|Destek e-posta adresi panoya kopyalanır."],"Kopyalandı bildirimi.");
+A('hakkinda','hk-yenile','↻ Zafiyet Veritabanını Yenile','Düğmeye tıklar.',["Ağ|CISA KEV listesi indirilir (kev_besleme.json) ve yerel veritabanına işlenir."],"Veritabanı tarihi güncellenir.");
+A('hakkinda','hk-kapat','Kapat','Düğmeye tıklar.',["UI|Pencere kapanır."],"Pencere kapanır.");
+/* --- Tur --- */
+A('tur','tr-ileri','İleri ▶','Düğmeye tıklar.',["UI|Adım sayacı artar; son adımda aynı düğme turu kapatır."],"Sonraki tanıtım adımı görünür.");
+A('tur','tr-geri','◀ Geri','Düğmeye tıklar.',["UI|Adım sayacı azalır (0’ın altına inmez)."],"Önceki adım görünür.");
+A('tur','tr-kapat','Turu Kapat','Düğmeye tıklar.',["UI|DialogResult.Cancel ile kapanır."],"Tur kapanır.");
+/* --- Sensör --- */
+A('sensor','sn-yeni','Yeni','Düğmeye tıklar.',["UI|Liste seçimi kalkar, form temizlenir."],"Boş sensör formu.");
+A('sensor','sn-kaydet','Kaydet','Alanları doldurup düğmeye tıklar.',["Veri|Ad, adres, kullanıcı ve anahtar doğrulanır; sensorler.json’a yazılır."],"Sensör listede görünür.");
+A('sensor','sn-sil','Sil','Düğmeye tıklar.',["Veri|Seçili sensör kaydı silinir."],"Liste güncellenir.");
+A('sensor','sn-anahtar','Anahtar Üret','Düğmeye tıklar.',["Güvenlik|ssh anahtar çifti üretilir; özel anahtar parolası DPAPI ile korunur."],"Anahtar yolu forma yazılır.");
+A('sensor','sn-ortak','Ortak Anahtarı Göster','Düğmeye tıklar.',["UI|Sensör makinede authorized_keys’e eklenecek ortak anahtar gösterilir."],"Ortak anahtar metni.");
+A('sensor','sn-sina','Bağlantıyı Sına','Düğmeye tıklar.',["Ağ|ssh.exe ile bağlanılır; ilk bağlantıda sunucu parmak izi gösterilip onaylanır.","Güvenlik|Parmak izi HKLM\\SOFTWARE\\BulutSoft\\Guard\\SensorHostKeys altında sabitlenir (host-key pinning)."],"Bağlantı sonucu ve parmak izi.");
+A('sensor','sn-tara','▶ Sensörden Port Taraması','Hedef IP/aralık yazıp düğmeye tıklar.',["Güvenlik|Hedef özel ağda mı doğrulanır; onay istenir.","Ağ|SSH üzerinden sensörde onaylı ajan çalışır; sonuçlar canlı akar."],"Açık kapılar kutuya akar.",{y:"Yetki: Tarama"});
+A('sensor','sn-durdur','■ Durdur','Düğmeye tıklar.',["Servis|Çalışan sensör işi iptal edilir."],"Akış durur.");
+/* --- Kalıcılık --- */
+A('kalici','kc-tara','▶ Tara ve İmzaları Doğrula','Düğmeye tıklar.',["Servis|Run anahtarları, başlangıç klasörleri, zamanlanmış görevler ve hizmetler taranır; dijital imza doğrulanır.","Veri|Her öğeye risk puanı ve gerekçesi verilir."],"Öğeler imza ve risk bilgisiyle listelenir.");
+A('kalici','kc-ms','Microsoft imzalıları gizle','Kutuyu işaretler.',["UI|Liste Microsoft imzalı öğelerden arındırılır."],"Liste kısalır.");
+A('kalici','kc-risk','Yalnızca riskliler (Orta ve üstü)','Kutuyu işaretler.',["UI|Düşük riskli öğeler gizlenir."],"Yalnız riskli öğeler kalır.");
+A('kalici','kc-degistir','⏻ Devre Dışı Bırak / Yeniden Etkinleştir','Bir öğe seçip düğmeye tıklar.',["Güvenlik|Onay istenir; geri alınabilir yedek alınır (kalicilik_yedek.json).","Servis|Seçili başlangıç öğesi devre dışı bırakılır (silinmez)."],"Öğenin durumu değişir; tekrar basınca eski hâle döner.",{y:"Yetki: Sistem değiştirme"});
+A('kalici','kc-konum','Dosya Konumunu Aç','Düğmeye tıklar.',["Servis|explorer.exe seçili öğenin dosyasını gösterir."],"Gezgin dosya konumunda açılır.");
+/* --- Politika --- */
+A('politika','gz-ac','Etkinleştir…','Bir sınıf seçip düğmeye tıklar.',["Güvenlik|Yönetici + kurulum şifresi ister; ilk 7 gün yalnız plan yazar.","Veri|Karar gozetimsiz_politika.json’a kaydedilir."],"Sınıf “AÇIK” olur (ilk hafta yalnız planlar).",{y:"Yetki: Yönetim"});
+A('politika','gz-kapat','Kapat (tek tık)','Düğmeye tıklar.',["Güvenlik|Seçili sınıf tek tıkla, şifresiz kapatılır."],"Sınıf “KAPALI” olur.");
+A('politika','gz-onizle','Kararı Önizle','Düğmeye tıklar.',["UI|Politikanın şimdi ne yapacağı yazılır; sistem değiştirilmez."],"Önizleme metni.");
+A('politika','gz-yenile','Yenile','Düğmeye tıklar.',["UI|Sınıf listesi yeniden okunur."],"Güncel durumlar.");
+/* --- Brute --- */
+A('brute','br-tara','▶ Tara','Düğmeye tıklar.',["Servis|Windows olay 4625 kayıtları (ve seçiliyse sensör SSH günlüğü) okunur; eşik üstü hatalı denemesi olan IP’ler listelenir."],"Saldırgan IP listesi.");
+A('brute','br-ssh','Sensör SSH günlüğü (onay kutusu)','Kutuyu işaretler.',["Ağ|SSH günlüğü sensörden okunur."],"Sensör günlüğü taramaya dahil olur.");
+A('brute','br-oto','Her 60 sn’de otomatik yenile','Kutuyu işaretler.',["UI|60 sn’lik zamanlayıcı taramayı tekrarlar."],"Liste kendiliğinden yenilenir.");
+A('brute','br-engel','⛔ Seçilenleri Engelle','IP seçip düğmeye tıklar.',["Güvenlik|Onay ve yönetici izni; seçili IP’ler için süreli güvenlik duvarı engeli eklenir."],"IP’ler engellenir.",{y:"Yetki: Sistem değiştirme"});
+A('brute','br-eski','⌛ Eskileri Kaldır','Düğmeye tıklar.',["Servis|Süresi dolan engel kuralları kaldırılır."],"Eski engeller silinir.");
+/* --- Cihaz --- */
+A('cihaz','cz-tara','↻ Ağı Şimdi Tara','Düğmeye tıklar.',["Ağ|Yalnız kendi özel ağınız taranır; MAC adresleriyle kalıcı listeye yazılır; yeni cihaz uyarı üretir."],"Cihaz listesi güncellenir.");
+A('cihaz','cz-guven','✓ Seçiliyi Güvenilir İşaretle','Düğmeye tıklar.',["Veri|Cihaz güvenilir olarak işaretlenir; sonraki taramada uyarı vermez."],"Durum “Güvenilir” olur.");
+A('cihaz','cz-cikar','✖ Seçiliyi Envanterden Çıkar','Düğmeye tıklar.',["Veri|Cihaz envanterden silinir."],"Satır kalkar.");
+A('cihaz','cz-sifirla','Envanteri Sıfırla','Düğmeye tıklar.',["Veri|Onayla tüm envanter silinir."],"Liste boşalır.");
+A('cihaz','cz-kapat','Kapat','Düğmeye tıklar.',["UI|Pencere kapanır."],"Pencere kapanır.");
+/* --- Olay --- */
+A('olay','ol-csv','▤ CSV Olarak Dışa Aktar','Düğmeye tıklar.',["Dosya|Olaylar BOM’lu UTF-8, noktalı virgül ayraçlı .csv olarak yazılır (Excel Türkçe karakterleri doğru açar)."],"Seçilen yerde .csv.");
+A('olay','ol-yenile','↻ Yenile','Düğmeye tıklar.',["Veri|Zincirli HMAC’li günlük (yerel + hizmet) yeniden okunur."],"En yeni olaylar üstte.");
+A('olay','ol-kapat','Kapat','Düğmeye tıklar.',["UI|Pencere kapanır; olay kayıtları silinmez."],"Pencere kapanır.");
+/* --- Bulgu --- */
+A('bulgu','bs-isaret','Yanlış Alarm İşaretle / Geri Al','Düğmeye tıklar (isteğe bağlı neden yazar).',["Veri|FpDeposu bulguyu yanlış alarm olarak işaretler (ya da geri alır); sonraki taramalarda bu bulgu puana katılmaz."],"Bulgu satırı soluklaşır; puan yeniden hesaplanır.");
+/* --- Ağ haritası --- */
+const H=(id,l,a,arka,c)=>A('harita',id,l,a,arka,c);
+H('ah-tara','▶ Sensörden Tara','Hedef aralığı yazıp düğmeye tıklar.',["Güvenlik|Yalnız özel ağ; her tarama onay ister.","Ağ|Sensörde nmap ile cihazlar ve açık hizmetler (ürün, sürüm) bulunur."],"Cihaz/hizmet tablosu ve her cihaza önem ağırlığı.");
+H('ah-iptal','Durdur','Düğmeye tıklar.',["Servis|Süren harita taraması iptal edilir."],"Tarama durur.");
+H('ah-yerel','▶ Bu Bilgisayarı Denetle','Düğmeye tıklar.',["Servis|Yerel denetim akışı çalışır; sonuçlar haritaya işlenir."],"Yerel bulgular tabloda.");
+H('ah-katalog','KB Kataloğu Yükle…','Düğmeye tıklar ve dosya seçer.',["Veri|Windows güncelleme (KB) kataloğu kb_katalog.json olarak yüklenir."],"Katalog sürümü görünür.");
+H('ah-web','Aktif Web Denetimi…','Düğmeye tıklar.',["Güvenlik|Sahiplik doğrulaması ve onay gerekir.","Ağ|Nazik aktif sondalar çalışır."],"Web bulguları tabloya eklenir.");
+H('ah-kev','KEV Listesini İndir…','Düğmeye tıklar.',["Ağ|CISA Known Exploited Vulnerabilities listesi indirilir."],"Liste tarihi güncellenir.");
+H('ah-nvd','NVD Verisi Yükle…','Düğmeye tıklar ve dosya seçer.',["Veri|NVD indeksi yerel dosyadan yüklenir (nvd_indeks.json)."],"İndeks sürümü görünür.");
+H('ah-kalite','Kural Kalitesi…','Düğmeye tıklar.',["UI|KuralKalitesiFormu: yanlış alarm oranları kural bazında gösterilir."],"Kural kalitesi tablosu.");
+H('ah-anarapor','Ana Rapora Ekle','Düğmeye tıklar.',["Veri|Haritadaki bulgular ana sonuç listesine eklenir."],"Ana tabloda yeni satırlar.");
+H('ah-rapor','Derin Denetim Raporu…','Düğmeye tıklar.',["Dosya|Derin denetim bulguları rapor dosyasına yazılır."],"Rapor kaydedildi satırı.");
+/* --- Durum panosu --- */
+const D=(id,l,a,arka,c)=>A('durum',id,l,a,arka,c);
+D('dp-pano','▦ Pano','Sekmeye tıklar.',["Veri|Güvenlik puanı trendi ve “bugün yapılacak 3 şey” hesaplanır."],"Trend grafiği ve özet.");
+D('dp-plan','✔ Düzeltme Planı','Sekmeye tıklar.',["Veri|Puan kazancına göre sıralı, MITRE ATT&CK etiketli düzeltme planı çıkarılır."],"Sıralı plan listesi.");
+D('dp-ozet','✎ Yönetici Özeti','Sekmeye tıklar.',["Veri|Son taramadan yönetici dili özeti üretilir."],"Özet metni ve kaydetme düğmeleri.");
+D('dp-karsi','⇄ Karşılaştır','Sekmeye tıklar.',["UI|İki tarama seçilebilen açılır liste gösterilir."],"Karşılaştırma ekranı.");
+D('dp-siem','⇪ SIEM Çıktısı','Sekmeye tıklar.',["UI|SIEM nedir ve dışa aktarma seçenekleri anlatılır."],"CEF ve JSON Lines düğmeleri.");
+D('dp-html','⇩ HTML Olarak Kaydet (Yönetici Özeti)','Düğmeye tıklar.',["UI|Tarama yoksa uyarılır; Kaydet penceresi açılır.","Dosya|Yonetici_Ozeti_tarih.html yazılır."],"Dosya kaydedildi bildirimi.");
+D('dp-yk','⇩ Yönetim Kurulu Risk Özeti (1 Sayfa)','Düğmeye tıklar.',["Dosya|Tek sayfalık yönetim kurulu risk özeti HTML olarak yazılır."],"Tek sayfalık rapor.");
+D('dp-etik','⇩ Etik Açık Bildirim Raporu','Düğmeye tıklar.',["Dosya|Etik/koordineli açık bildirimi raporu hazırlanır."],"Rapor dosyası.");
+D('dp-karsilastir','⇄ Karşılaştır (düğme)','İki tarama seçip düğmeye tıklar.',["Veri|İki tarama arasında yeni, düzelen ve kalan bulgular çıkarılır."],"Sonuç kutusunda fark listesi.");
+D('dp-karsi-html','⇩ Karşılaştırmayı HTML Olarak Kaydet','Düğmeye tıklar.',["Dosya|Karsilastirma_tarih.html yazılır."],"Dosya kaydedildi.");
+D('dp-cef','⇪ CEF Olarak Kaydet','Düğmeye tıklar.',["Dosya|Bulgular SIEM’lerin okuduğu CEF biçiminde yazılır."],"Bulgular_tarih.cef.");
+D('dp-json','⇪ JSON Lines Olarak Kaydet','Düğmeye tıklar.',["Dosya|Her bulgu bir JSON satırı olarak yazılır."],"Bulgular_tarih.jsonl.");
+/* --- Araç kutusu --- */
+const T=(id,l)=>A('arac',id,l,'Sol menüde “'+l+'” sayfasına tıklar.',["UI|İlgili sayfa görünür, diğerleri gizlenir; sayfanın kendi düğmeleri aşağıdaki adımlarda anlatılır."],"“"+l+"” sayfası açılır.");
+T('ak-link','◈ Link Analizi');T('ak-eklenti','◫ Tarayıcı Eklentileri');T('ak-kara','⊘ Kara Liste (IP)');T('ak-parola','⚿ Parola Sızıntısı');T('ak-politika','✓ Parola Politikası');T('ak-fim','▤ Dosya Bütünlüğü');T('ak-hash','# Özet (Hash) Hesapla');T('ak-dosya','⌕ Dosya İnceleyici');T('ak-filo','▦ Filo Raporu');T('ak-vaka','✎ Vaka Defteri');T('ak-duvar','▦ Duvar Yedeği');T('ak-sistem','✦ Sistem ve Koruma');
+const AI=(id,l,a,arka,c)=>A('arac',id,l,a,arka,c);
+AI('ai-analiz','Analiz Et (Link)','Linki yapıştırıp düğmeye tıklar (Enter de çalışır).',["Servis|LinkAnalizi.Analiz yalnızca linkin yazısına bakar; linke GİTMEZ ve internete çıkmaz."],"“SONUÇ: seviye (risk n/100)” ve nedenler listesi.");
+AI('ai-eklenti','Eklentileri Tara','Düğmeye tıklar.',["Servis|EklentiDenetimi.Tara tarayıcı eklentilerini ve izinlerindeki riskleri okur."],"Tarayıcı, ad, sürüm ve risk sütunlu tablo.");
+AI('ai-ipkontrol','IP Kontrol Et','Bir IP yazıp düğmeye tıklar.',["Veri|KaraListe.Kontrol adresi kayıtlı kara listeyle karşılaştırır."],"Listede olup olmadığı yazılır.");
+AI('ai-baglanti','Bağlantılarımı Tara','Düğmeye tıklar.',["Servis|Şu anki bağlantılar kara listedeki adreslerle eşleştirilir."],"“Hiçbir adresle bağlantı yok” ya da DİKKAT listesi.");
+AI('ai-liste','Listeyi Düzenle','Düğmeye tıklar.',["Dosya|kara_liste.txt yoksa açıklama satırlarıyla oluşturulur ve Not Defteri’nde açılır."],"Kara liste dosyası düzenlenebilir.");
+AI('ai-sizinti','Sızıntıda Mı? (İnternete Sorar)','Bir parola yazıp düğmeye tıklar.',["Güvenlik|Onay: internete (api.pwnedpasswords.com) bağlanılır; parola ASLA gönderilmez, yalnız SHA-1 özetinin ilk 5 harfi gönderilir (k-anonimlik).","Ağ|Dönen listeyle karşılaştırma bilgisayarınızda yapılır; parola kaydedilmez."],"“Bu parola n kez sızmış” ya da “sızıntıda görülmedi”.");
+AI('ai-politika','Politikayı Kaydet','Uzunluk, süre ve yasaklı kelimeleri yazıp düğmeye tıklar.',["Dosya|ParolaPolitikasi.Kaydet parola_politikasi.json’a yazar."],"Politika kaydedildi bilgisi.");
+AI('ai-gozat','Gözat…','Düğmeye tıklar.',["UI|Klasör/dosya seçim penceresi açılır; seçilen yol kutuya yazılır."],"Yol kutusu dolar.");
+AI('ai-temel','Temel Oluştur (Dosya Bütünlüğü)','Klasör seçip düğmeye tıklar.',["Dosya|DosyaButunlugu.TemelOlustur klasördeki dosyaların özetini çıkarıp temel olarak kaydeder (en fazla belirli dosya sayısı ve boyut sınırı)."],"“Temel kaydedildi: n dosya.”");
+AI('ai-fimkarsi','Karşılaştır (Dosya Bütünlüğü)','Düğmeye tıklar.',["Veri|Klasörün güncel özetleri temelle karşılaştırılır; değişen, yeni ve silinen dosyalar bulunur."],"Değişiklik listesi.");
+AI('ai-hesap','Hesapla (Hash)','MD5/SHA-1/SHA-256 seçip düğmeye tıklar.',["Servis|Dosya arka planda okunarak özetler hesaplanır; Durdur ile iptal edilebilir."],"Seçilen özetler kutuda.");
+AI('ai-hashdur','Durdur (Hash)','Düğmeye tıklar.',["Servis|Süren hesap iptal edilir."],"Hesap durur.");
+AI('ai-hashkarsi','Karşılaştır (Hash)','Beklenen özeti yapıştırıp düğmeye tıklar.',["Veri|Hesaplanmış özetle yapıştırılan özet karşılaştırılır."],"“Eşleşiyor” ya da “eşleşmiyor”.");
+AI('ai-hashkopya','Sonucu Kopyala','Düğmeye tıklar.',["UI|Sonuç metni panoya kopyalanır."],"Panoda sonuç.");
+AI('ai-incele','İncele (Dosya İnceleyici)','Dosya seçip düğmeye tıklar.',["Servis|Dosya yerelde incelenir (imza, tür, şüpheli göstergeler); dosya çalıştırılmaz."],"İnceleme raporu.");
+AI('ai-raporkaydet','Raporu Kaydet','Düğmeye tıklar.',["Dosya|DosyaRaporu_tarih.txt yazılır."],"Dosya kaydedildi.");
+AI('ai-kopya','Kopyala (inceleme)','Düğmeye tıklar.',["UI|Rapor metni panoya kopyalanır."],"Panoda rapor.");
+AI('ai-filorapor','Rapor Oluştur (Filo)','Özet klasörünü seçip düğmeye tıklar.',["Servis|FiloRaporu.Calistir klasördeki tarama özetlerini birleştirip HTML + .csv üretir."],"“Rapor yazıldı” ve yol; Raporu Aç etkinleşir.");
+AI('ai-filoac','Raporu Aç','Düğmeye tıklar.',["Servis|Yalnız az önce üretilen .html dosyası varsayılan tarayıcıda açılır."],"Filo raporu tarayıcıda.");
+AI('ai-yenivaka','Yeni Vaka','Düğmeye tıklar ve başlık yazar.',["Veri|VakaDeposu yeni vaka kaydı açar (vakalar.json)."],"Listede yeni vaka.");
+AI('ai-not','Not Ekle','Vaka seçip not yazar.',["Veri|Not zaman damgasıyla vakaya eklenir."],"Not vaka ayrıntısında.");
+AI('ai-vakadurum','Durumu Kaydet','Durum seçip düğmeye tıklar.',["Veri|Vakanın durumu güncellenir ve kaydedilir."],"Durum güncellenir.");
+AI('ai-metne','Metne Aktar','Vaka seçip düğmeye tıklar.',["Dosya|Vaka_tarih.txt olarak dışa yazılır."],"Dosya kaydedildi.");
+AI('ai-yedek','Yedek Al (Yönetici İzni)','Düğmeye tıklar.',["Servis|Güvenlik duvarı kuralları yönetici izniyle yedeklenir (fw_yedek)."],"Yedek dosyası listede.",);
+AI('ai-geri','Seçiliyi Geri Yükle','Yedek seçip düğmeye tıklar.',["Güvenlik|Onay ve yönetici izni; yedekteki güvenlik duvarı kuralları geri yüklenir."],"Kurallar eski hâline döner.");
+AI('ai-muhurle','Ayar Dosyalarını Mühürle','Düğmeye tıklar.',["Güvenlik|Onay: altın profil, kabul edilenler, cihaz envanteri, vakalar, kara liste gibi dosyalar o hâliyle mühürlenir (HMAC)."],"“Mühürlendi” bilgisi.");
+AI('ai-muhurdogrula','Mühürleri Doğrula','Düğmeye tıklar.',["Güvenlik|Mevcut dosyalar kayıtlı mühürlerle karşılaştırılır; değişen dosya bildirilir."],"Dosya dosya doğrulama sonucu.");
+AI('ai-tani','Tanılama Paketi Hazırla','Düğmeye tıklar.',["Dosya|Tanılama paketi masaüstüne yazılır."],"“Hazır (Masaüstü): …” satırı.");
+AI('ai-webhook','Bildirim Kanalı (Webhook)…','Düğmeye tıklar.',["UI|Kanal ve eşik ayarı alınır; Kritik olaylar bu kanala gönderilir."],"Webhook ayar penceresi.");
+/* --- Merkez --- */
+const MK=(id,l)=>A('merkez',id,l,'Merkez penceresinin sol menüsünde “'+l+'” sekmesine tıklar.',["UI|İlgili sayfa görünür; sayfadaki düğmeler aşağıdaki adımlarda."],"“"+l+"” sayfası açılır.");
+MK('mk-kali','Kali Sensör Durumu');MK('mk-ip','IP Sızıntı Testi');MK('mk-bildirim','Bildirim Kanalları');MK('mk-konsol','Kali Konsol (Uzman)');MK('mk-nmap','Nmap Komutu (Uzman)');MK('mk-rehber','Kali Araç Rehberi (Uzman)');
+const MC=(id,l,a,arka,c)=>A('merkez',id,l,a,arka,c);
+MC('mc-tekrar','Yeniden Dene','Düğmeye tıklar.',["Ağ|Kali durum denetimi hemen yeniden çalışır."],"Durum satırı güncellenir.");
+MC('mc-uyandir','Sanal Makineyi Başlat…','Düğmeye tıklar.',["Servis|Kali sanal makinesi VirtualBox üzerinden başlatılır; hazır olması beklenir."],"Durum “Başlatılıyor…”, ardından hazır.");
+MC('mc-sensor','Sensör Ayarları (SSH)…','Düğmeye tıklar.',["UI|Uzak Sensörler penceresi açılır."],"Sensör ayar penceresi.");
+MC('mc-sizinti','Testi Başlat…','Düğmeye tıklar.',["Ağ|Dış IP’yi gösteren servislerle bilgisayarın (ve seçiliyse Kali’nin) çıkış adresi karşılaştırılır; Kali testi 1–2 dk sürebilir."],"Test sonucu ve gösterge rengi.");
+MC('mc-test','Test Mesajı Gönder','Düğmeye tıklar.',["Ağ|Seçili kanala (Telegram/Discord/Teams) örnek mesaj gönderilir."],"Gönderildi veya hata nedeni.");
+MC('mc-kaydet','Ayarları Kaydet','Düğmeye tıklar.',["Dosya|Kanal ayarları bildirim_kanallari.json’a yazılır."],"“Kaydedildi”.");
+MC('mc-temizle','Temizle (Kali konsol)','Düğmeye tıklar.',["UI|Konsol çıktısı silinir."],"Boş konsol.");
+MC('mc-kopyala','Kopyala (Kali konsol)','Düğmeye tıklar.',["UI|Konsol metni panoya kopyalanır."],"Kopyalandı bildirimi.");
+MC('mc-haritada','Ağ Haritası’nda Tara…','Düğmeye tıklar.',["UI|Ağ Haritası penceresi açılır."],"Ağ Haritası.");
+MC('mc-calistir','Seçili Şablonu Çalıştır (Kali Araç Rehberi)','Listeden araç seçip düğmeye tıklar.',["Güvenlik|Komut şablonu, hedef (özel ağ + izinli liste) ve parametre kuralları C# tarafında doğrulanır; sensör ajanı aynı kuralları yeniden doğrular.","Servis|Gerekirse onayla araç kurulur; komut zaman sınırıyla çalışır, çıktı satır satır akar ve kayıt olarak saklanır."],"Çıktı kutusuna canlı sonuç; rehber metni “bu uygulamadan çalıştırma” bölümünü gösterir.",);
+MC('mc-durdur','Durdur (Kali araç)','Düğmeye tıklar.',["Servis|Çalışan komut iptal edilir."],"Çıktı akışı durur.");
+/* --- Tepsi --- */
+A('tepsi','tp-ac','Tepsi menüsü: Pencereyi Aç','Tepsi simgesine sağ tıklayıp öğeyi seçer.',["UI|PenceriyiGeriGetir: küçültülmüş ana pencere öne gelir."],"Ana pencere görünür.");
+A('tepsi','tp-simdi','Tepsi menüsü: Şimdi Kontrol Et','Öğeyi seçer.',["Servis|NobetKontrolAsync(false): 127.0.0.1 kapıları anında yoklanır, öncekiyle karşılaştırılır."],"Yeni açık kapı varsa balon uyarısı.");
+A('tepsi','tp-kapat','Tepsi menüsü: Nöbetçi Modunu Kapat','Öğeyi seçer.',["Servis|Nöbetçi açıksa NobetDegistirAsync kapatır; tepsi simgesi gizlenir."],"Günlükte nöbetçi kapandı satırı.");
+A('tepsi','tp-cik','Tepsi menüsü: Çıkış','Öğeyi seçer.',["UI|Uygulama kapanır; koruma hizmeti kuruluysa o çalışmaya devam eder."],"Program kapanır.");
+A('tepsi','tp-balon','Bildirim balonuna çift tıklama','Balona (veya tepsi simgesine) çift tıklar.',["UI|PenceriyiGeriGetir ana pencereyi öne getirir."],"Ana pencere görünür.");
+
+/* ================= Motor ================= */
+const STEPS=[];SCENES.forEach(s=>s.steps.forEach(st=>STEPS.push(Object.assign({scene:s},st))));
+STEPS.forEach((st,i)=>st.i=i);
+const win=$('#win'),scaler=$('#scaler'),stage=$('#stage'),cur=$('#cur');
+let idx=0,playing=false,timer=null,t0=0,dur=1,curScene=null,raf=0,fired=0;
+
+function fit(){const k=stage.clientWidth/1000;scaler.style.transform='scale('+k+')';place()}
+window.addEventListener('resize',fit);
+
+function buildTimeline(){const tl=$('#tl');tl.innerHTML='';SCENES.forEach(s=>{if(!s.steps.length)return;const e=document.createElement('div');e.className='seg';e.style.flex=s.steps.length+' 1 0';e.dataset.sc=s.id;e.title=s.t+' ('+s.steps.length+' adım)';e.innerHTML='<div class="f"></div>';tl.appendChild(e)});
+ tl.addEventListener('click',ev=>{const seg=ev.target.closest('.seg');if(!seg)return;const s=SCENES.find(x=>x.id===seg.dataset.sc);const r=seg.getBoundingClientRect();const f=Math.min(.999,Math.max(0,(ev.clientX-r.left)/r.width));go(s.steps[0].i+Math.floor(f*s.steps.length),true)})}
+function buildChips(){const g=[...new Set(SCENES.filter(s=>s.steps.length).map(s=>s.grp))];$('#chips').innerHTML=g.map(x=>`<button class="chip" data-g="${x}">${x}</button>`).join('');$('#chips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;const s=SCENES.find(x=>x.grp===c.dataset.g&&x.steps.length);go(s.steps[0].i,true)}}
+function buildList(filter){const q=(filter||'').toLowerCase();let h='';SCENES.forEach(s=>{const ss=s.steps.filter(st=>!q||(st.label+' '+s.t+' '+st.act).toLowerCase().includes(q));if(!ss.length)return;h+=`<h4>${esc(s.t)}</h4>`+ss.map(st=>`<button data-i="${st.i}" class="${st.i===idx?'cur':''}"><span>${st.i+1}</span>${esc(st.label)}</button>`).join('')});$('#dl').innerHTML=h||'<p style="padding:12px;color:#7787A3">Eşleşen adım yok.</p>'}
+$('#dl').onclick=e=>{const x=e.target.closest('button');if(!x)return;go(+x.dataset.i,true);$('#drawer').classList.remove('open')};
+$('#btnList').onclick=()=>{buildList($('#q').value);$('#drawer').classList.add('open');$('#q').focus()};$('#dx').onclick=()=>$('#drawer').classList.remove('open');$('#q').oninput=e=>buildList(e.target.value);
+$('#btnInfo').onclick=()=>{const n=SCENES.filter(s=>s.steps.length).length;$('#il').innerHTML=`<p><b>${n} ekran</b> ve <b>${STEPS.length} tıklanabilir öğe/etkileşim</b> anlatılmaktadır.</p><p style="margin-top:8px">Her adım üç katmanda gösterilir: kullanıcı aksiyonu → arka plan süreci → ekran çıktısı.</p><p style="margin-top:8px;color:#9AA9C2">Teknik akışlar uygulamanın kaynak kodundaki ilgili işleyicilerden ve düğme açıklamalarından derlenmiştir. Pencere görüntüleri gerçek renk paleti ve düzene göre çizilmiş simülasyondur; içindeki veriler örnektir.</p>`+['Kolay Görünüm','Uzman Görünüm','Uzman Pencereleri','Ortak','Başlangıç'].map(g=>{const ss=SCENES.filter(s=>s.grp===g&&s.steps.length);return `<h4 style="margin:14px 0 4px;color:#7787A3;font-size:11px;letter-spacing:.8px;text-transform:uppercase">${g}</h4>`+ss.map(s=>`<div>• ${esc(s.t)} <span style="color:#7787A3">(${s.steps.length})</span></div>`).join('')}).join('');$('#info').classList.add('open')};$('#ix').onclick=()=>$('#info').classList.remove('open');
+
+function place(){const st=STEPS[idx];const el=win.querySelector('[data-b="'+st.id+'"]');win.querySelectorAll('.hl').forEach(x=>x.classList.remove('hl'));if(!el)return;el.classList.add('hl');
+ const sr=scaler.getBoundingClientRect(),er=el.getBoundingClientRect(),k=sr.width/1000||1;cur.style.left=((er.left-sr.left)/k+er.width/k*0.55)+'px';cur.style.top=((er.top-sr.top)/k+er.height/k*0.6)+'px'}
+function show(i){const st=STEPS[i];if(curScene!==st.scene){curScene=st.scene;win.innerHTML=st.scene.render()}
+ const dd=win.querySelector('#ddm');if(dd)dd.classList.toggle('open',/^u-hedef-(sec|yerel|ag)$/.test(st.id));
+ const d=st.scene;$('#crumb').innerHTML=`<b>${esc(d.grp)}</b><i>›</i><span>${esc(d.t)}</span><i>›</i><b style="color:#FDE047">${esc(st.label)}</b>`;
+ $('#act').innerHTML=`${esc(st.label)}<small>${esc(st.act)}</small>`;
+ const bd=[];if(st.y)bd.push(`<span class="bd y">${esc(st.y)}</span>`);if(st.arka.some(a=>/^Güvenlik\|/.test(a)))bd.push('<span class="bd o">Güvenlik kontrolü</span>');if(st.arka.some(a=>/^Ağ\|/.test(a)))bd.push('<span class="bd t">Ağ işlemi</span>');if(st.arka.some(a=>/^Dosya\|/.test(a)))bd.push('<span class="bd">Dosya yazar</span>');$('#badges').innerHTML=bd.join('');
+ $('#flow').innerHTML=st.arka.map(a=>{const m=a.match(/^(UI|Servis|Ağ|Dosya|Güvenlik|Veri|Hata)\|([\s\S]*)$/);const t=m?m[1]:'UI',x=m?m[2]:a;return `<li><span class="tag ${t}">${t==='UI'?'ARAYÜZ':t.toUpperCase()}</span><span>${esc(x)}</span></li>`}).join('');
+ $('#out').className='out';$('#out').innerHTML=(st.st?`<span class="st i">${esc(st.st)}</span><br>`:'')+esc(st.cikti);
+ const nt=$('#note');if(st.n){nt.hidden=false;nt.textContent=st.n}else nt.hidden=true;
+ $('#cnt').textContent='Adım '+(i+1)+' / '+STEPS.length;$('#sceneName').textContent=d.t;$('#bPrev').disabled=i===0;$('#bNext').disabled=i===STEPS.length-1;
+ document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.g===d.grp));
+ document.querySelectorAll('.seg').forEach(sg=>{const s=SCENES.find(x=>x.id===sg.dataset.sc);const a=s.steps[0].i,n=s.steps.length;sg.querySelector('.f').style.width=(i<a?0:i>=a+n?100:((i-a+1)/n*100))+'%'});
+ cur.classList.remove('click');requestAnimationFrame(()=>{place();setTimeout(()=>{cur.classList.remove('click');void cur.getBoundingClientRect();cur.classList.add('click')},700)});}
+function stepDur(st){return (3600+st.arka.length*1300+Math.min(st.cikti.length,200)*8)/parseFloat($('#sp').value)}
+function reveal(){clearTimeout(raf);const st=STEPS[idx];const lis=[...document.querySelectorAll('#flow li')];const out=$('#out');lis.forEach(l=>l.classList.remove('show'));out.classList.remove('show');t0=performance.now();dur=stepDur(st);
+ const tick=()=>{if(!playing){lis.forEach(l=>l.classList.add('show'));out.classList.add('show');return}const p=(performance.now()-t0)/dur;const k=Math.floor(Math.min(1,p/0.72)*(lis.length+0.999));lis.forEach((l,j)=>l.classList.toggle('show',j<k));if(p>0.62)out.classList.add('show');if(p>=1){if(idx<STEPS.length-1){go(idx+1)}else pause();return}raf=setTimeout(tick,60)};tick()}
+function go(i){idx=Math.max(0,Math.min(STEPS.length-1,i));show(idx);reveal()}
+function play(){playing=true;$('#bPlay').textContent='⏸';if(idx>=STEPS.length-1)idx=0;go(idx)}
+function pause(){playing=false;$('#bPlay').textContent='▶';document.querySelectorAll('#flow li').forEach(l=>l.classList.add('show'));$('#out').classList.add('show')}
+$('#bPlay').onclick=()=>playing?pause():play();$('#bPrev').onclick=()=>go(idx-1,true);$('#bNext').onclick=()=>go(idx+1,true);$('#sp').onchange=()=>{if(playing)reveal()};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;if(e.code==='Space'){e.preventDefault();playing?pause():play()}else if(e.key==='ArrowRight')go(idx+1,true);else if(e.key==='ArrowLeft')go(idx-1,true);else if(e.key==='l'||e.key==='L')$('#btnList').click()});
+buildTimeline();buildChips();fit();{const h=parseInt(location.hash.slice(1),10);go(isNaN(h)?0:h-1);if(/p$/.test(location.hash))play()}
+</script>
+</body>
+</html>

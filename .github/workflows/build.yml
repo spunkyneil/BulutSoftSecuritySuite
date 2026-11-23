@@ -1,0 +1,18 @@
+name: build
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet build BulutSoft.sln -c Release
+      # Arayüz (WinForms/WebView2) testleri başsız sunucuda takılabildiği için CI'da yalnızca
+      # kaynak-kuralı ve saf mantık testleri çalışır; arayüz testleri yerelde çalıştırılır.
+      - run: dotnet test LabDenetim.Tests -c Release --no-build --filter "Tur=KaynakKurali" --blame-hang-timeout 5m

@@ -1,0 +1,8 @@
+<Project>
+  <!-- Tüm projelerin ORTAK meta verisi: sürüm TEK KAYNAKTAN buradan gelir (arayüz etiketleri ve kurulum paketi bunu okur). -->
+  <PropertyGroup>
+    <Version>1.6.0</Version>
+    <Company>BulutSoft Güvenlik Teknolojileri</Company>
+    <Authors>BulutSoft</Authors>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,28 @@
+# BulutSoft.Core çözümleyici (latest-recommended) ayarları.
+# KURAL: bir uyarıyı burada susturmak için YAZILI GEREKÇE şarttır. Gerçek hata riski taşıyan uyarılar (boşa giden dönüş değeri, kültür, null,
+# iptal belirteci, IDisposable, güvenlik açığı olan paket) KODDA düzeltilir; burada yalnızca bilinçli tercihler yönetilir.
+[*.cs]
+
+# CA1861 (sabit dizi bağımsız değişkenini static readonly yap): saf performans/stil önerisi. İlgili yerler soğuk yollardır (rapor/uyumluluk
+# etiketi üretimi, tek seferlik denetim listeleri); dizileri paylaşmak, bulgu nesneleri aynı diziyi görüp değiştirirse gizli yan etki doğurabilir.
+# Ölçülebilir kazancı yok, okunabilirliği ve güvenliği bozmamak için öneri düzeyinde bırakılır.
+dotnet_diagnostic.CA1861.severity = suggestion
+
+# --- Güvenlik denetim aracının KENDİ doğası gereği bilinçli kullanımlar (yalnızca ilgili dosyalar) ---
+
+# SHA-1: parola sızıntı sorgusu (Have I Been Pwned "k-anonimlik") API'si parolanın SHA-1 özetinin ilk 5 harfini ister; protokol gereği başka algoritma kullanılamaz.
+# Özet hiçbir güvenlik kararında/doğrulamada kullanılmaz, parola da asla gönderilmez.
+[AracMantigi.cs]
+dotnet_diagnostic.CA5350.severity = none
+
+# Sertifika doğrulaması kapalı el sıkışma: bu bir TLS DENETİM aracıdır; hatalı/süresi dolmuş/kendinden imzalı sertifikaları da OKUYUP raporlamalıdır.
+# Bağlantıda gizli veri gönderilmez; yalnızca sertifika ve başlıklar okunur. Eski TLS sürümleri ise "sunucu hâlâ TLS 1.0/1.1 kabul ediyor mu?" diye SINANIR (bulgu üretmek için).
+[Moduller/TlsDenetimi.cs]
+dotnet_diagnostic.CA5359.severity = none
+dotnet_diagnostic.CA5397.severity = none
+
+# Pasif gözlem: sertifika hatası gözlemi engellemez; veri gönderilmez, yalnızca sunucunun yanıt başlıkları/sertifikası okunur. TLS sürüm adları yalnızca raporda GÖSTERİLİR.
+[PasifToplayici.cs]
+dotnet_diagnostic.CA5359.severity = none
+dotnet_diagnostic.CA5397.severity = none
+dotnet_diagnostic.SYSLIB0039.severity = none

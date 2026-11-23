@@ -1,0 +1,19 @@
+# Derleme çıktıları
+bin/
+obj/
+*.user
+.vs/
+TestResults/
+
+# Yayın çıktıları ve yedekler (GitHub Releases ile dağıtılır)
+/Output/
+/yayin/
+/Kaynak Yedekleri/
+/22.11.2026 tarihli Arşiv Yedek Program/
+/Kurucular/
+
+# Yerel / gizli dosyalar
+*.pfx
+*.snk
+*.env
+*.log

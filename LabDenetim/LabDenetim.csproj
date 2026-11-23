@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Yüksek DPI: monitör başına (PerMonitorV2) ölçekleme; farklı ölçekli ekranlar arasında pencere/denetimler yeniden ölçeklenir. -->
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- .exe dosyasına sağ tıklayıp Özellikler > Ayrıntılar'da görünen kimlik bilgileri -->
+    <AssemblyName>BulutSoftSecuritySuite</AssemblyName>
+    <Product>BulutSoft Security Suite</Product>
+    <AssemblyTitle>BulutSoft Security Suite</AssemblyTitle>
+    <!-- Sürüm, şirket ve yazar bilgisi kökteki Directory.Build.props dosyasından gelir (tek kaynak). -->
+    <ApplicationIcon>app.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="app.ico" LogicalName="app.ico" />
+    <!-- Canlı küre sayfası ve yerel kütüphaneleri (çevrimdışı): çıktı ve yayın klasörüne kopyalanır. -->
+    <Content Include="Kure\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <EmbeddedResource Include="kali_araclari.json" LogicalName="kali_araclari.json" />
+  </ItemGroup>
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- DAHİLİ SATICI ARAÇLARI (lisans üretimi) yalnızca bilerek istenirse derlenir:  dotnet build -p:VendorTools=true  (müşteri sürümünde ASLA; bkz. CLAUDE.md kural 6). -->
+    <DefineConstants Condition="'$(VendorTools)' == 'true'">$(DefineConstants);INTERNAL_VENDOR_TOOLS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Arayüzden bağımsız çekirdek (olay günlüğü, kimlik, lisans doğrulama, kural motoru, denetim modülleri). -->
+    <ProjectReference Include="..\BulutSoft.Core\BulutSoft.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="LabDenetim.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Sürüm sabit: her derleme aynı kütüphaneyi kullansın (tekrar üretilebilir derleme). Güncellemek bilinçli bir karardır. -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
+    <PackageReference Include="QuestPDF" Version="2026.9.2" />
+    <PackageReference Include="System.Management" Version="10.0.0" />
+  </ItemGroup>
+
+  <!-- MSB3277 kök nedeni: WebView2 paketi hem WinForms hem WPF derlemesi getirir; WPF olanı WindowsBase 4.0/5.0 çakışması doğurur. Uygulama yalnızca WinForms kullanır,
+       bu yüzden WPF derlemesi referanstan çıkarılır (uyarı bastırılmaz, çakışma kaynağı kaldırılır). -->
+  <Target Name="WebView2WpfDerlemesiniCikar" AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition="'%(Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BulutSoft Security Suite — Mimari ve Yol Haritası</title>
+<style>
+  :root{--m:#0369a1;--m2:#0ea5e9;--y:#b45309;--g:#15803d;--r:#b91c1c;--t:#0f172a;--s:#475569;--b:#e2e8f0;--bg:#f8fafc}
+  *{box-sizing:border-box}
+  body{font-family:"Segoe UI",Arial,sans-serif;color:var(--t);margin:0;background:var(--bg);line-height:1.6}
+  .kap{max-width:960px;margin:0 auto;padding:28px 22px 80px}
+  header.kapak{background:linear-gradient(135deg,#0c4a6e,#0369a1);color:#fff;border-radius:14px;padding:34px 30px;margin-bottom:22px}
+  header.kapak h1{margin:0 0 6px;font-size:30px}
+  header.kapak p{margin:4px 0;opacity:.92}
+  h2{font-size:22px;margin:38px 0 8px;color:var(--m);border-bottom:2px solid var(--b);padding-bottom:6px}
+  h3{font-size:16.5px;margin:20px 0 6px;color:#0c4a6e}
+  p{margin:8px 0}
+  ul,ol{margin:6px 0 10px 20px;padding:0}
+  li{margin:4px 0}
+  .kutu{background:#fff;border:1px solid var(--b);border-radius:10px;padding:14px 16px;margin:12px 0}
+  .not{background:#fffbeb;border-left:4px solid #f59e0b;padding:10px 14px;border-radius:6px;margin:12px 0}
+  .iyi{background:#f0fdf4;border-left:4px solid var(--g);padding:10px 14px;border-radius:6px;margin:12px 0}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0;background:#fff}
+  th,td{border:1px solid var(--b);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:#f1f5f9}
+  code{background:#eef2f7;padding:1px 5px;border-radius:4px;font-size:13px}
+  nav.ic{background:#fff;border:1px solid var(--b);border-radius:10px;padding:12px 18px;margin:14px 0}
+  nav.ic a{color:var(--m);text-decoration:none}
+  nav.ic ol{columns:2;margin-left:18px}
+  .sema{display:grid;gap:10px;margin:14px 0}
+  .kat{border:2px solid var(--m2);border-radius:10px;padding:10px 14px;background:#fff}
+  .kat b{color:var(--m)}
+  .ok{text-align:center;color:var(--s);font-size:20px;line-height:1}
+  .iki{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .uc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .rozet{display:inline-block;background:#e0f2fe;color:#075985;border-radius:20px;padding:1px 10px;font-size:12.5px;margin:2px 3px 2px 0}
+  .yz ol{counter-reset:x}
+  .yz li{margin:7px 0}
+  .yz li b{color:#0c4a6e}
+  @media (max-width:700px){.iki,.uc{grid-template-columns:1fr}nav.ic ol{columns:1}}
+  @media print{body{background:#fff}.kap{padding:0}h2{page-break-after:avoid}.kutu,.kat,table{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="kap">
+
+<header class="kapak">
+  <h1>BulutSoft Security Suite</h1>
+  <p><b>Mimari, kurulum, giriş, gelişim süreci ve ileri seviye yol haritası</b></p>
+  <p>Kurumsal siber savunma ve uyumluluk platformu · Sürüm 1.0 · Kasım 2026</p>
+  <p style="font-size:14px;opacity:.85">Amaç: operasyon ve geliştirme ekipleriyle ürünü değerlendirmek, geri bildirim toplamak.</p>
+</header>
+
+<nav class="ic"><b>İçindekiler</b>
+<ol>
+  <li><a href="#amac">Ürün nedir, kimin için?</a></li>
+  <li><a href="#buyuk">Büyük resim: mimari katmanlar</a></li>
+  <li><a href="#kurulum">Kurulum ve ilk çalıştırma</a></li>
+  <li><a href="#giris">Giriş, kimlik ve yetkilendirme</a></li>
+  <li><a href="#iskelet">Programın iç iskeleti</a></li>
+  <li><a href="#akis">Bir taramanın baştan sona yolculuğu</a></li>
+  <li><a href="#sensor">Uzak sensör mimarisi</a></li>
+  <li><a href="#ozellik">Özellik haritası</a></li>
+  <li><a href="#guvenlik">Güvenlik tasarım ilkeleri</a></li>
+  <li><a href="#lisans">Lisans mimarisi</a></li>
+  <li><a href="#gelisim">Gelişim süreci</a></li>
+  <li><a href="#durum">Şimdiki durum ve dürüst sınırlar</a></li>
+  <li><a href="#test">Operasyonel test planı ve sorular</a></li>
+  <li><a href="#yz">İleri seviye 100 öneri</a></li>
+</ol></nav>
+
+<h2 id="amac">1. Ürün nedir, kimin için?</h2>
+<p>BulutSoft Security Suite, bir şirketin (özellikle KOBİ'lerin ve küçük/orta BT ekiplerinin) <b>kendi ağını ve bilgisayarlarını</b> güvenlik açısından kontrol etmesini sağlayan bir Windows uygulamasıdır. Üç soruya cevap verir:</p>
+<ul>
+  <li><b>Neredeyiz?</b> Hangi kapılar açık, hangi ayarlar zayıf, hangi program sistemde kalıcı yerleşmiş? Hepsi 0-100 arasında tek bir güvenlik puanına dönüşür.</li>
+  <li><b>Ne yapmalıyız?</b> Her bulgu sade Türkçe ile açıklanır, hazır çözüm komutu verilir, düzeltme önceliği "en çok puan kazandıran iş" sırasıyla çıkar.</li>
+  <li><b>Yönetime ve denetime ne göstereceğiz?</b> Bulgular KVKK m.12 ve ISO 27001 maddeleriyle eşleştirilir; tek sayfalık Yönetim Kurulu özeti ve teknik raporlar otomatik üretilir.</li>
+</ul>
+<div class="not"><b>Temel güvenlik sözü:</b> Program yalnızca <b>özel (kendi) ağ adreslerini</b> tarar; internetteki başkalarının sistemlerine tarama yapmaz. Sistemi değiştiren hiçbir işlem sizin onayınız olmadan çalışmaz.</div>
+
+<h2 id="buyuk">2. Büyük resim: mimari katmanlar</h2>
+<p>Ürün, "komuta merkezi + işçi (sensör)" mantığıyla tasarlandı. Komuta merkezi yöneticinin kullandığı Windows uygulamasıdır; ağır işleri yapan sensör ise ayrı bir Linux (Kali) sanal makinesidir.</p>
+<div class="sema">
+  <div class="kat"><b>1) Sunum katmanı — Windows uygulaması (WinForms, .NET 10)</b><br>Giriş ekranı, ana pano, radar, tablolar, raporlar, kullanıcı yönetimi, koyu/açık tema, komut paleti (Ctrl+K).</div>
+  <div class="ok">▼</div>
+  <div class="kat"><b>2) Mantık katmanı — kural ve karar motoru</b><br>Tarama akışı, risk puanı, zincirleme risk analizi, MITRE ATT&amp;CK ve KVKK/ISO eşleştirme, yetki kontrolü, lisans kontrolü, onay ve güvenlik kapıları.</div>
+  <div class="ok">▼</div>
+  <div class="iki">
+    <div class="kat"><b>3a) Yerel yürütme</b><br>Bu bilgisayarın kendisini inceler: Windows güvenlik karnesi, kalıcılık, olay günlükleri (4625), güvenlik duvarı, USB, dosya izleme.</div>
+    <div class="kat"><b>3b) Uzak sensör (Kali sanal makine)</b><br>Şifreli SSH ile bağlanılır; sensördeki küçük Python ajanı kapı, HTTP, TLS ve DNS verisini toplar; sonuç JSON satırlarıyla geri akar.</div>
+  </div>
+  <div class="ok">▼</div>
+  <div class="kat"><b>4) Veri katmanı — %AppData%\BulutSoft</b><br>Kimlik, geçmiş taramalar, olay günlüğü, cihaz envanteri, vakalar, ayarlar, lisans. Hepsi kullanıcının kendi bilgisayarında kalır, dışarı gönderilmez.</div>
+  <div class="kat" style="border-color:#f59e0b"><b>Yan bileşen: Lisans otoritesi (Kali)</b><br>Lisansları dijital imzalar. Yalnızca lisans üretirken gerekir; programın çalışması için gerekmez.</div>
+</div>
+
+<h2 id="kurulum">3. Kurulum ve ilk çalıştırma</h2>
+<h3>3.1 Dağıtım</h3>
+<ul>
+  <li><code>Yayinla.ps1</code> betiği önce testleri çalıştırır, geçerse programı paketler ve taşınabilir bir <code>.zip</code> üretir (isteğe bağlı olarak .NET'i de içine katar).</li>
+  <li><code>BulutSoft.iss</code> betiğiyle Inno Setup üzerinden kurulum sihirbazı (kurulum .exe'si) üretilebilir; yalnızca program dosyalarını kopyalar, Windows ayarlarını değiştirmez.</li>
+  <li>Program simgesi (sarı daire içinde şimşek) <code>.exe</code> içine gömülüdür.</li>
+</ul>
+<h3>3.2 İlk açılış sırası</h3>
+<ol>
+  <li><b>Açılış ekranı (5 saniye):</b> Süs değildir; gerçek hazırlık adımları yapılır — tehdit veritabanı yüklenir, kimlik kayıtları ve ayar dosyası mühürleri doğrulanır, OpenSSH aranır, sensör ve geçmiş sayılır. Ekranda adımlar tek tek ✓ olur.</li>
+  <li><b>İlk kurulum ekranı:</b> Kimlik dosyası yoksa gelir. İki şey belirlenir: <b>Kurulum Şifresi</b> (kullanıcı ekleme, rol verme, parola sıfırlama gibi yönetici işlemlerinin ek kilidi) ve ilk <b>yönetici hesabı</b>. İkisinin parolası farklı olmalıdır; parola en az 8 karakter, harf ve rakam içermelidir.</li>
+  <li><b>14 günlük deneme</b> kendiliğinden başlar. Süre kaydı hem dosyada hem kayıt defterinde, Windows'un şifrelemesiyle (DPAPI) saklanır.</li>
+  <li><b>Lisans:</b> Yönetici, Lisans penceresinden kendi bilgisayarı için süresiz "Sahip Lisansı" üretebilir.</li>
+</ol>
+<h3>3.3 Sensör kurulumu (isteğe bağlı, bir kez)</h3>
+<table>
+  <tr><th>Adım</th><th>Ne olur?</th></tr>
+  <tr><td>1. Kali sanal makinesi</td><td>VirtualBox'ta ikinci bir ağ kartı (Host-Only) eklenir; Kali'de SSH açılır.</td></tr>
+  <tr><td>2. Sensör ekleme</td><td>Uzak Sensörler penceresinde ad, IP, kullanıcı girilir.</td></tr>
+  <tr><td>3. Anahtar üretme</td><td>Program bir ed25519 anahtar çifti üretir; parola kullanılmaz, yalnızca anahtarla giriş yapılır.</td></tr>
+  <tr><td>4. Ortak anahtarı sensöre ekleme</td><td>Hazır komut Kali'de bir kez çalıştırılır.</td></tr>
+  <tr><td>5. Bağlantıyı sınama</td><td>İlk bağlantıda sunucunun parmak izi sabitlenir (sonradan değişirse bağlantı reddedilir). Ajan sürümü ve Python kontrol edilir.</td></tr>
+</table>
+
+<h2 id="giris">4. Giriş, kimlik ve yetkilendirme</h2>
+<p>Her açılışta giriş ekranı gelir. Parolalar <b>düz yazı saklanmaz</b>; PBKDF2-SHA256 (600.000 tur) ile özetlenir. Hatalı girişte güvenlik önlemleri devreye girer:</p>
+<ul>
+  <li>5 hatalı denemede hesap 30 saniye kilitlenir; hata sürerse süre katlanır (en çok 15 dakika). Kurulum şifresi için de aynı koruma vardır.</li>
+  <li>Kullanıcı adı mı parola mı yanlış olduğu belli edilmez (hesap varlığı sızdırılmaz).</li>
+  <li><b>Şifremi Unuttum:</b> Kurulum Şifresi ile parola sıfırlanır. Kurulum Şifresi de unutulursa kurtarma yolu bilerek yoktur (aksi halde herkes kurtarabilirdi).</li>
+  <li>Kimlik dosyası bozulursa program sessizce yeniden kuruluma geçmez, uyarıp kapanır.</li>
+  <li>"Kullanıcı Değiştir" ile programı kapatmadan başka hesaba geçilir. Tüm giriş ve yetki olayları Olay Zaman Çizgisi'ne yazılır.</li>
+</ul>
+<table>
+  <tr><th>Rol</th><th>Yapabildikleri</th></tr>
+  <tr><td><b>İzleyici</b></td><td>Sonuçları görür, rapor alır. Tarama başlatamaz, hiçbir şeyi değiştiremez.</td></tr>
+  <tr><td><b>Analist</b></td><td>Tarama yapar, araçları, kalkanları, tuzakları, nöbetçiyi, sensörleri, radarı ve kalıcılık denetçisini kullanır. Sistemi değiştiren işlemleri ve kullanıcı yönetimini yapamaz.</td></tr>
+  <tr><td><b>Yönetici</b></td><td>Her şey: Acil İzolasyon, güvenlik duvarı kuralları, IP engelleme, başlangıç öğesi devre dışı bırakma, süreç sonlandırma, kullanıcı ve lisans yönetimi.</td></tr>
+</table>
+<p>Yetkisiz bir işlemde hata penceresi hangi özelliğe izin olmadığını söyler; menüde kullanılamayan özelliklerin yanında kilit (⚿) işareti görünür.</p>
+
+<h2 id="iskelet">5. Programın iç iskeleti</h2>
+<p>Kod tek bir ana pencere sınıfının (<code>Form1</code>) yaklaşık 37 parçaya bölünmesiyle ve ayrı mantık sınıflarıyla düzenlidir. Kural: <b>ekran kodu ile karar kodu ayrıdır</b>; böylece karar mantığı ekran açmadan test edilebilir.</p>
+<table>
+  <tr><th>Grup</th><th>Ne içerir?</th></tr>
+  <tr><td>Tarama modülleri (<code>Moduller\</code>)</td><td>Kapı, yapılandırma, HTTP, TLS, DNS, girdi doğrulama, ağ keşfi, trafik izleyici, sistem denetimi (kalıcılık, güvenlik karnesi, Wi-Fi, hesaplar).</td></tr>
+  <tr><td>Güvenlik sınırları</td><td><code>LabKapsam</code>: yalnızca özel ağ adresleri. Yetki (<code>Kimlik.cs</code>), lisans (<code>Lisans.cs</code>), mühür (ayar dosyası bütünlüğü).</td></tr>
+  <tr><td>Savunma</td><td>Nöbetçi, USB kalkanı, Tuzaklar (honeypot, canary, fidye alarmı), Acil İzolasyon, Giriş Saldırı Radarı, Kalıcılık Denetçisi, Süreç Avcısı, güvenlik duvarı yardımcısı.</td></tr>
+  <tr><td>Analiz</td><td>Zincirleme risk, MITRE etiketleri, KVKK/ISO eşleştirme, düzeltme planı, altın profil karşılaştırma, kabul edilen risk.</td></tr>
+  <tr><td>Raporlama</td><td>HTML/PDF raporu, Yönetim Kurulu özeti, adli kanıt paketi (zip + özet değerleri), SIEM (CEF/JSON), tanılama paketi.</td></tr>
+  <tr><td>Operasyon</td><td>Olay zaman çizgisi, cihaz envanteri, vaka defteri, geçmiş ve karşılaştırma, güvenlik araç kutusu, zamanlanmış tarama.</td></tr>
+  <tr><td>Altyapı</td><td>Depolar (JSON dosyaları), tema yöneticisi, pencere hafızası, komut paleti, açılış/giriş ekranları, sensör istemcisi ve ajan.</td></tr>
+  <tr><td>Test projesi</td><td>Ayrı bir test projesinde yaklaşık 200 otomatik test (kimlik, lisans, yetki, ayrıştırıcılar, rapor, sensör güvenliği, vb.).</td></tr>
+</table>
+<h3>Veri nerede duruyor?</h3>
+<p>Her kullanıcının kendi bilgisayarında <code>%AppData%\BulutSoft</code> klasöründe: kimlik, tema, pencere konumu, sensör listesi, lisans ve deneme kaydı, olay günlüğü, geçmiş taramalar, altın profil, kabul edilen riskler, cihaz envanteri, vakalar, kalıcılık yedeği, güvenlik duvarı yedekleri ve sensör anahtarları.</p>
+
+<h2 id="akis">6. Bir taramanın baştan sona yolculuğu</h2>
+<ol>
+  <li><b>Başlat:</b> Kullanıcı hedefi ve tarama yerini ("Bu bilgisayar" veya Kali sensörü) seçer. F5 ile de başlar.</li>
+  <li><b>Kapılar:</b> Yetki ve lisans kontrolü yapılır (lisans yoksa yalnızca yeni tarama kısıtlanır). Hedef özel ağ mı diye doğrulanır; sensör seçiliyse 127.0.0.1 gibi "sensörün kendisi" adresleri reddedilir.</li>
+  <li><b>Kapı yoklaması:</b> Yerelden veya sensörden. Açık kapılar canlı olarak radara düşer.</li>
+  <li><b>Modüller:</b> Zayıf ayarlar, HTTP başlıkları, TLS sertifikası, DNS alt isimleri, form girdi testi (yerelden veya sensörden). Hedef bu bilgisayarsa ayrıca hosts/DNS, kalıcılık, güvenlik karnesi, Wi-Fi ve hesap kontrolleri.</li>
+  <li><b>Yorum:</b> Her bulgu önem derecesi (kritik/uyarı/dikkat/güvenli), sade açıklama, öneri, MITRE ve KVKK/ISO etiketi ile tabloya düşer. Kullanıcının "kabul ettiği risk" puanı düşürmez.</li>
+  <li><b>Analiz:</b> Zincirleme risk analizi bulguları birleştirir (örn. açık SMB + alt alan adı = saldırı yolu); altın profille karşılaştırılır.</li>
+  <li><b>Sonuç:</b> Puan hesaplanır, geçmişe kaydedilir, önceki taramayla karşılaştırılır; Olay Zaman Çizgisi'ne ve (açıksa) bildirim kanalına yazılır.</li>
+  <li><b>Çıktı:</b> Teknik rapor, Yönetim Kurulu özeti, kanıt paketi veya SIEM dosyası tek tıkla üretilir.</li>
+</ol>
+
+<h2 id="sensor">7. Uzak sensör mimarisi</h2>
+<p>Amaç, ağ taramasını yöneticinin bilgisayarından ayırıp izole bir sanal makineye taşımaktır. Böylece ana bilgisayar kendi ağ kartından tarama yapmaz; şubelerde de aynı model tekrar edilebilir.</p>
+<div class="iki">
+  <div class="kutu"><b>Bağlantı</b><br>Windows'un kendi OpenSSH istemcisi. Yalnızca anahtarla giriş, sunucu parmak izi sabitleme, bağlantı zaman aşımı. Sensör ana bilgisayara hiçbir kapı açmaz; bağlantıyı daima Windows başlatır.</div>
+  <div class="kutu"><b>Ajan</b><br>Küçük bir Python programı. Sensörün diskine <u>yazılmaz</u>; her çalıştırmada SSH üzerinden standart girişten verilir, iş bitince iz kalmaz. Yalnızca standart kütüphaneyi kullanır.</div>
+</div>
+<ul>
+  <li><b>Onaylı komutlar:</b> Sensörde serbest komut çalışmaz. Yalnızca programın sabit komutları (ön kontrol, kapı taraması, HTTP/TLS/DNS toplama, SSH günlüğü okuma, lisans imzalama) çalışır. Argümanlar doğrulanır ve Base64 JSON olarak verilir; kabuğa metin enjekte edilemez.</li>
+  <li><b>Veri toplama ile yorumlama ayrıdır:</b> Ajan yalnızca ham veri (başlıklar, sertifika alanları, çözülen adresler) toplar. Yorumlama Windows'ta yerel modüllerle aynı kural ve metinlerle yapılır; böylece iki yolun sonucu aynı biçimde olur.</li>
+  <li><b>Çift kontrol:</b> Hedefin özel ağ olduğu hem Windows'ta hem ajanda ayrı ayrı doğrulanır. Yönlendirmeler özel ağ dışına çıkarsa durdurulur.</li>
+  <li><b>Denetim günlüğü:</b> Sensörde ne çalıştırıldığı kayıt altındadır. Sensörden gelen veri güvenilmez kabul edilir (türleri kontrol edilir, kontrol karakterleri temizlenir).</li>
+  <li><b>Sensörün ek görevi:</b> Kali, SSH günlüğünden brute-force denemelerini de okur ve lisans otoritesi olarak imza atar.</li>
+</ul>
+
+<h2 id="ozellik">8. Özellik haritası</h2>
+<div class="kutu"><b>Tarama ve keşif</b><br>
+<span class="rozet">Kapı yoklama</span><span class="rozet">Zayıf ayarlar</span><span class="rozet">HTTP başlıkları</span><span class="rozet">TLS sertifikası</span><span class="rozet">DNS alt isimler</span><span class="rozet">Girdi doğrulama</span><span class="rozet">Ağ cihaz envanteri (yeni cihaz alarmı)</span><span class="rozet">Canlı ağ trafiği</span><span class="rozet">Sanal makine bulma</span></div>
+<div class="kutu"><b>Sistem güvenliği (bu bilgisayar)</b><br>
+<span class="rozet">Güvenlik karnesi (Defender, duvar, UAC, SMB1, yama, BitLocker)</span><span class="rozet">Kalıcılık (Run, görev, hizmet, imza)</span><span class="rozet">Hosts/DNS bütünlüğü</span><span class="rozet">Wi-Fi</span><span class="rozet">Yerel hesaplar</span><span class="rozet">Altın profil</span></div>
+<div class="kutu"><b>Erken uyarı ve savunma</b><br>
+<span class="rozet">Nöbetçi (sessiz izleme)</span><span class="rozet">USB kalkanı</span><span class="rozet">Honeypot kapı</span><span class="rozet">Canary dosyalar</span><span class="rozet">Fidye alarmı + Süreç Avcısı</span><span class="rozet">Giriş Saldırı Radarı</span><span class="rozet">Acil İzolasyon</span><span class="rozet">Güvenlik duvarı yedek/geri yükleme</span></div>
+<div class="kutu"><b>Analiz, uyumluluk ve raporlama</b><br>
+<span class="rozet">Zincirleme risk</span><span class="rozet">MITRE ATT&amp;CK</span><span class="rozet">KVKK m.12 / ISO 27001:2022</span><span class="rozet">Düzeltme planı</span><span class="rozet">HTML/PDF rapor</span><span class="rozet">Yönetim Kurulu özeti</span><span class="rozet">Adli kanıt paketi</span><span class="rozet">SIEM (CEF/JSON)</span><span class="rozet">Geçmiş ve karşılaştırma</span></div>
+<div class="kutu"><b>Operasyon ve kullanılabilirlik</b><br>
+<span class="rozet">Olay zaman çizgisi</span><span class="rozet">Vaka defteri</span><span class="rozet">Araç kutusu (link, eklenti, kara liste, parola sızıntısı, dosya bütünlüğü)</span><span class="rozet">Zamanlanmış tarama</span><span class="rozet">Komut paleti</span><span class="rozet">Başarılar</span><span class="rozet">Eğitim modu</span><span class="rozet">Koyu/açık tema</span><span class="rozet">Webhook bildirimi</span></div>
+
+<h2 id="guvenlik">9. Güvenlik tasarım ilkeleri</h2>
+<table>
+  <tr><th>İlke</th><th>Uygulama</th></tr>
+  <tr><td>Kapsam sınırı</td><td>Yalnızca özel ağ adresleri taranır. İnternet adresleri reddedilir.</td></tr>
+  <tr><td>Onay ve UAC</td><td>Sistemi değiştiren her işlem açık onay ister (varsayılan "Hayır") ve gerekirse Windows yönetici izni (UAC) gerektirir. Otomatik engelleme/otomatik onarım yoktur.</td></tr>
+  <tr><td>Geri alınabilirlik</td><td>Başlangıç öğeleri silinmez, devre dışı bırakılır; güvenlik duvarı kuralları yedeklenir; Acil İzolasyon kuralları "Aktif Kalkanlarım"dan kaldırılır.</td></tr>
+  <tr><td>Kendi sistemini koruma</td><td>Microsoft imzalı öğelere, sistem süreçlerine, kendi adresinize dokunulmaz. Komut satırına giren adlar doğrulanır (enjeksiyon engeli).</td></tr>
+  <tr><td>Gizlilik</td><td>Veri bilgisayardan çıkmaz. İnternete çıkan özellikler (parola sızıntı kontrolü, webhook) yalnızca onayla çalışır; parola sızıntı kontrolünde parolanın yalnızca özetinin ilk 5 harfi sorulur.</td></tr>
+  <tr><td>Bütünlük</td><td>Ayar dosyalarına "mühür" basılabilir; izinsiz değişiklik açılışta uyarı verir. Kimlik dosyası atomik yazılır.</td></tr>
+  <tr><td>Güvenli kalma (fail-safe)</td><td>Lisans kontrolü hata verirse kısıtlama uygulanmaz; savunma özellikleri hiçbir zaman lisans yüzünden kapanmaz.</td></tr>
+</table>
+
+<h2 id="lisans">10. Lisans mimarisi</h2>
+<ul>
+  <li><b>İmzalı lisans dosyası:</b> Lisans (müşteri, makine kimliği, bitiş tarihi, sürüm) ECDSA P-256 ile imzalanır. Program yalnızca genel anahtarı bilir; bu yüzden başkası kendi lisansını üretemez ve tarihi değiştirmek imzayı bozar.</li>
+  <li><b>Lisans otoritesi = Kali:</b> Özel anahtar Kali'de kalır, oradan çıkmaz. Kali yalnızca lisans <u>üretirken</u> gerekir; doğrulama çevrimdışıdır. Kali kapalıyken bile lisanslı program çalışır.</li>
+  <li><b>Makine kimliği:</b> Bilgisayara özgü, geri çevrilemeyen kimlik. Lisans başka bilgisayarda reddedilir.</li>
+  <li><b>Deneme:</b> 14 gün; kayıt iki yerde saklanır; saat geri alınırsa süre uzamaz.</li>
+  <li><b>Yumuşak kısıtlama:</b> Lisans bitince yalnızca yeni tarama başlatma kısıtlanır; geçmiş, raporlar ve kalkanlar çalışır.</li>
+</ul>
+<div class="not">Yerel doğrulama, programı değiştirebilen kararlı biri tarafından atlanabilir. Ticari kullanımda sunucu tarafı doğrulama (madde 73) ve kod imzalama gerekir.</div>
+
+<h2 id="gelisim">11. Gelişim süreci</h2>
+<table>
+  <tr><th>Evre</th><th>Ne eklendi?</th></tr>
+  <tr><td>Temel</td><td>Tarama motoru (kapı, ayar, HTTP, TLS, DNS), sade açıklamalı asistan, HTML/PDF rapor, geçmiş, güvenli kapsam kilidi.</td></tr>
+  <tr><td>Savunma</td><td>Nöbetçi, USB kalkanı, Acil İzolasyon, Tuzaklar, zincirleme risk, altın profil, kanıt paketi, cihaz envanteri.</td></tr>
+  <tr><td>Analitik</td><td>Olay zaman çizgisi, Durum Panosu (trend, plan, özet), MITRE, SIEM, kalıcılık/karne/Wi-Fi/hesap kontrolleri, araç kutusu.</td></tr>
+  <tr><td>Kurumsal</td><td>Uzak sensör (SSH + ajan), kimlik ve roller, kurulum şifresi, açılış/giriş ekranları, koyu/açık tema, KVKK/ISO eşleştirme.</td></tr>
+  <tr><td>Aktif savunma</td><td>Giriş Saldırı Radarı, Kalıcılık Denetçisi (imza), Süreç Avcısı.</td></tr>
+  <tr><td>Ticari</td><td>İmzalı lisans (Kali otoritesi), Yönetim Kurulu özeti, HTTP/TLS/DNS'in sensöre taşınması, VirtualBox sanal makine entegrasyonu.</td></tr>
+</table>
+<p>Geliştirme boyunca her adım gerçek ortamda ekran görüntüsüyle ve otomatik testle doğrulanmış; kullanıcı kendi bilgisayarında gerçek Kali sensörüyle sensör bağlantısı ve lisans akışını denemiştir.</p>
+
+<h2 id="durum">12. Şimdiki durum ve dürüst sınırlar</h2>
+<div class="iyi"><b>Çalışıyor ve doğrulandı:</b> Tarama ve rapor akışı, kimlik/roller, tema, açılış ekranı, KVKK/ISO eşleştirme, Yönetim Kurulu özeti, uzak sensör bağlantısı ve kapı taraması (gerçek Kali), lisans üretimi ve çevrimdışı doğrulama (gerçek Kali), VirtualBox listeleme. Yaklaşık 200 otomatik test başarılı.</div>
+<div class="not"><b>Henüz gerçek operasyonel ortamda tam denenmeyenler:</b> Sensörden HTTP/TLS/DNS, Giriş Saldırı Radarı'nın gerçek verisi ve IP engelleme, Kalıcılık Denetçisi'nin devre dışı bırakma/geri alma akışı, Süreç Avcısı sonlandırma, sensörün SSH günlüğünü okuması.</div>
+<ul>
+  <li>Uyumluluk eşleştirmesi rehber niteliğindedir; hukuki görüş ve bağımsız denetim yerine geçmez. Bir bilgi güvenliği uzmanınca gözden geçirilmelidir.</li>
+  <li>Tek sensör ve tek merkez; çoklu makine/merkezi sunucu yok (bilinçli olarak sonraya bırakıldı).</li>
+  <li>Windows'a bağımlı (WinForms); veri JSON dosyalarında (veritabanı yok).</li>
+  <li>Ana pencere çok dar ekranlarda sığmayabilir (1920×1080'de sorun yok).</li>
+</ul>
+
+<h2 id="test">13. Operasyonel test planı ve sorular</h2>
+<h3>Önerilen test düzeni</h3>
+<ol>
+  <li>İzole bir test ağı: birkaç Windows ve Linux makine, kasıtlı zayıf bir web sitesi, bir sensör.</li>
+  <li>Senaryolar: (a) tarama + rapor okunabilirliği, (b) Yönetim Kurulu özetinin yöneticiye sunumu, (c) sensör kurulum süresi, (d) hatalı SSH/RDP girişi simülasyonu ile radar, (e) kalıcılık denetçisinde yanlış alarm oranı, (f) rol ayrımı, (g) lisans süresi dolma davranışı.</li>
+  <li>Ölçütler: kurulum süresi, yanlış alarm sayısı, bulguları kapatma süresi, kullanıcı memnuniyeti.</li>
+</ol>
+<div class="iki">
+  <div class="kutu"><b>Operasyon ekibine sorular</b><ul>
+    <li>Rapor ve Yönetim Kurulu özeti iş kararı almaya yetiyor mu? Eksik olan ne?</li>
+    <li>Hangi bulgular gürültü? Eşikler (5 hatalı giriş = şüpheli) uygun mu?</li>
+    <li>Hangi sistemler kapsama girmeli (Linux sunucular, ağ cihazları, bulut)?</li>
+    <li>Rapor biçimi ve sıklığı ne olmalı? Hangi bildirim kanalı?</li>
+  </ul></div>
+  <div class="kutu"><b>Geliştiricilere sorular</b><ul>
+    <li>SSH + Python ajanı (diske yazmadan) mimarisi ölçeklenir mi? Çoklu sensör için ne önerirsiniz?</li>
+    <li>Lisans (ECDSA) ve kimlik deposu (PBKDF2) yeterli mi? Neyi güçlendirirsiniz?</li>
+    <li>Windows bağımlılığı ve test kapsamı için öncelik nedir?</li>
+    <li>Hangi parçalar eklenti mimarisine taşınmalı?</li>
+  </ul></div>
+</div>
+
+<h2 id="yz">14. Profesyonel seviyede neler yapılabilir? — 100 öneri</h2>
+<p>Öneriler sekiz başlıkta toplandı; her biri, ürünü bir "araç"tan kurumsal bir "platform"a taşıyacak somut bir adımdır.</p>
+<div class="yz">
+
+<h3>A. Mimari ve ölçeklenebilirlik (1-12)</h3>
+<ol start="1">
+  <li><b>Merkezi yönetim sunucusu (API):</b> Sensörler ve istemciler tek bir sunucuyla konuşsun; sonuçlar merkezde birikip tüm kuruluş için tek görünüm sunsun.</li>
+  <li><b>Çoklu sensör ve gruplar:</b> Şube/segment başına sensör, etiketleme ve toplu tarama; her sensörün sağlık durumu izlensin.</li>
+  <li><b>Çekme (pull) modeli ve servis ajanı:</b> Sensör merkezden iş kuyruğu çeksin, ajan kalıcı servis (systemd) olsun; SSH'a bağımlılık azalsın.</li>
+  <li><b>Karşılıklı TLS (mTLS):</b> Ajan-merkez iletişimi sertifika tabanlı karşılıklı kimlik doğrulamayla korunsun.</li>
+  <li><b>İş kuyruğu ve zamanlayıcı:</b> Tarama zamanlama, tekrar, öncelik, iptal ve bakım pencereleri merkezi yönetilsin.</li>
+  <li><b>Gerçek veritabanı:</b> JSON dosyalarından SQLite/PostgreSQL'e geçilsin; sorgulama, trend ve bütünlük kazanılsın.</li>
+  <li><b>Eklenti (plugin) mimarisi:</b> Kontrol modülleri imzalı paketler olarak sonradan yüklenebilsin; üçüncü taraf katkı mümkün olsun.</li>
+  <li><b>Taşınabilir çekirdek + CLI:</b> Tarama motoru kütüphane olarak ayrılıp komut satırı ve Linux/macOS desteğiyle sunulsun; Windows arayüzü yalnızca bir istemci olsun.</li>
+  <li><b>Web konsolu:</b> Tarayıcıdan izleme ve rol bazlı panolar (Blazor/React); mobil uyumlu.</li>
+  <li><b>Olay tabanlı iç mimari:</b> Modüller birbirini doğrudan çağırmak yerine olay yayınlasın; yeni özellik eklemek kolaylaşsın.</li>
+  <li><b>Sürümlü yapılandırma:</b> Ayarlar tek şemada, doğrulanan, sürümlü ve içe/dışa aktarılabilir olsun.</li>
+  <li><b>Sağlık izleme ve telemetri:</b> Uygulama ve ajan sağlık metrikleri, hata raporlama (kullanıcı onayıyla, kişisel veri temizlenerek).</li>
+</ol>
+
+<h3>B. Sensör ve tarama motoru (13-27)</h3>
+<ol start="13">
+  <li><b>Gelişmiş keşif:</b> nmap/masscan entegrasyonuyla servis ve sürüm tespiti.</li>
+  <li><b>CVE eşleştirme:</b> Tespit edilen servis sürümlerini NVD/CISA KEV ile eşleştiren çevrimdışı zafiyet veritabanı.</li>
+  <li><b>Kimlik bilgili tarama:</b> Onaylı hesapla yama ve yapılandırma denetimi (daha doğru, daha az yanlış alarm).</li>
+  <li><b>CIS Benchmark / Microsoft Security Baseline:</b> Standart sertleştirme listelerine göre denetim.</li>
+  <li><b>Linux sunucu denetimi:</b> SSH yapılandırması, sudoers, açık portlar, paket güncellemeleri.</li>
+  <li><b>Ağ cihazı denetimi:</b> Yönlendirici/switch için SNMP, varsayılan parola ve firmware kontrolleri.</li>
+  <li><b>Web uygulaması taraması:</b> Bağlantı keşfi ve OWASP Top 10 için bozucu olmayan temel testler.</li>
+  <li><b>API güvenliği:</b> OpenAPI içe aktarma; yetkilendirme, hız sınırı ve veri sızıntısı testleri.</li>
+  <li><b>TLS derin analiz:</b> Şifre paketleri, HSTS preload, sertifika zinciri, OCSP ve Certificate Transparency.</li>
+  <li><b>E-posta ve DNS güvenliği:</b> SPF/DKIM/DMARC, DNSSEC ve (izinli) bölge aktarımı kontrolü.</li>
+  <li><b>Active Directory denetimi:</b> Zayıf politikalar, eski yetkiler, Kerberos riskleri, GPO — yalnızca okuma.</li>
+  <li><b>Bulut güvenlik duruşu (CSPM):</b> AWS/Azure/GCP yanlış yapılandırmaları, salt okuma yetkisiyle.</li>
+  <li><b>Konteyner denetimi:</b> Açık Docker soketi, imaj zafiyetleri, ayrıcalıklı konteynerler.</li>
+  <li><b>Nazik tarama profilleri:</b> Üretim sistemini yormayan, yüke göre kendini yavaşlatan adaptif tarama.</li>
+  <li><b>Kapsam yönetimi:</b> İzinli/yasaklı IP listeleri, bakım pencereleri ve imzalı kapsam onayı (yasal güvence).</li>
+</ol>
+
+<h3>C. Tespit ve savunma (28-45)</h3>
+<ol start="28">
+  <li><b>Sürekli uç nokta ajanı:</b> Windows/Linux için değişiklik ve olay akışı sağlayan hafif ajan.</li>
+  <li><b>Sysmon/ETW telemetrisi:</b> Süreç ve ağ olaylarıyla fidye ve yanal hareket tespiti.</li>
+  <li><b>Sigma kuralları:</b> Topluluğun tespit kurallarını içe aktarma.</li>
+  <li><b>YARA taraması:</b> Şüpheli dosyaları kural tabanlı tarama.</li>
+  <li><b>Dosya itibarı:</b> Özetlerin yerel zararlı veritabanıyla (isteğe bağlı çevrimiçi) karşılaştırılması.</li>
+  <li><b>Gelişmiş fidye tespiti:</b> Entropi analizi, toplu yeniden adlandırma ve gölge kopya silme tespiti.</li>
+  <li><b>SOAR oyun kitapları:</b> "Koşul → onaylı eylem" kuralları (IP engelle, hesabı kilitle, makineyi izole et); onay ve geri alma korunarak.</li>
+  <li><b>Yanal hareket tespiti:</b> SMB/RDP/WinRM anormallikleri ve kimlik taşıma göstergeleri.</li>
+  <li><b>Honeytoken'lar:</b> Sahte kimlik bilgileri ve AD nesneleri; kullanılırsa alarm.</li>
+  <li><b>Ağ anomali analizi:</b> Çıkış trafiği, periyodik bağlantı (beaconing) ve DNS tünelleme tespiti.</li>
+  <li><b>Tehdit istihbaratı beslemeleri:</b> IP/alan adı/hash göstergelerinin (MISP, abuse.ch) içe aktarılması.</li>
+  <li><b>Phishing koruması:</b> E-posta başlık/bağlantı analizi ve çalışan simülasyonu.</li>
+  <li><b>Parola sağlığı:</b> AD ve yerel hesaplarda zayıf/sızmış parola denetimi (gizliliği koruyarak).</li>
+  <li><b>Ayrıcalık değişimi alarmı:</b> Yönetici grup üyeliği değişince bildirim.</li>
+  <li><b>USB politika motoru:</b> Yetkili cihaz listesi ve salt-okunur zorlaması.</li>
+  <li><b>Uygulama beyaz listesi:</b> WDAC/AppLocker politikalarının yönetim desteği.</li>
+  <li><b>Güvenlik duvarı kural analizi:</b> Gereksiz, çakışan ve aşırı geniş kuralların tespiti; zaman damgalı kural sürümleri.</li>
+  <li><b>Karantina:</b> Şüpheli dosyayı geri alınabilir biçimde karantinaya alma.</li>
+</ol>
+
+<h3>D. Uyumluluk ve raporlama (46-58)</h3>
+<ol start="46">
+  <li><b>Çerçeve genişletme:</b> ISO 27001 tam Ek A, NIST CSF, CIS Controls, PCI DSS, SOC 2 ve sektör rehberleri.</li>
+  <li><b>Kontrol bazlı uyum durumu:</b> Her madde için uyumlu/kısmen/uyumsuz durumu ve bağlı kanıt.</li>
+  <li><b>Kanıt kasası:</b> Denetçiye sunulacak imzalı, zaman damgalı kanıt arşivi.</li>
+  <li><b>Politika şablonları:</b> Bulguya bağlı hazır politika ve prosedür taslakları.</li>
+  <li><b>Risk kaydı:</b> Olasılık × etki, risk sahibi, hedef tarih, kabul/azaltma kararları.</li>
+  <li><b>Varlık envanteri (CMDB):</b> Cihaz, yazılım, sahip ve kritiklik; bulgular varlıklarla ilişkilendirilsin.</li>
+  <li><b>Kritiklik ağırlıklı puanlama:</b> Sunucu ile misafir cihazı aynı değil; CVSS + varlık değeri + sömürülebilirlik.</li>
+  <li><b>KPI panoları:</b> Ortalama kapatma süresi (MTTR), açık kritik sayısı, puan trendi.</li>
+  <li><b>Karşılaştırmalı raporlar:</b> Dönem, şube ve hedef bazında ilerleme.</li>
+  <li><b>İmzalı raporlar:</b> PDF dijital imza ve sürüm numarasıyla bütünlük.</li>
+  <li><b>Çok dil ve marka:</b> TR/EN raporlar; logo ve renk özelleştirme.</li>
+  <li><b>Rapor otomasyonu:</b> Haftalık özetin yöneticilere e-posta/klasör olarak teslimi.</li>
+  <li><b>Bilet entegrasyonu:</b> Jira/ServiceNow/GLPI'de bulgudan otomatik görev açma ve durum eşitleme.</li>
+</ol>
+
+<h3>E. Kimlik, erişim ve sertleştirme (59-72)</h3>
+<ol start="59">
+  <li><b>Çok faktörlü doğrulama:</b> Yönetici girişinde TOTP/FIDO2.</li>
+  <li><b>SSO:</b> Windows/AD (Kerberos) ve Azure AD/OIDC entegrasyonu.</li>
+  <li><b>Özelleştirilebilir yetki modeli:</b> Roller yerine özellik bazlı izinler.</li>
+  <li><b>Dört göz ilkesi:</b> Kritik işlemler (IP engelleme, kural geri yükleme) için ikinci onaylayıcı.</li>
+  <li><b>Değiştirilemez denetim günlüğü:</b> Zincirleme özetli, kurcalama belli olan olay kaydı.</li>
+  <li><b>Sır yönetimi:</b> Anahtar ve API gizlerini Credential Manager/TPM'e bağlama.</li>
+  <li><b>Donanım korumalı sensör anahtarı:</b> Parola korumalı veya YubiKey destekli anahtar üretimi.</li>
+  <li><b>Kod imzalama ve güvenli güncelleme:</b> İmzalı paket, otomatik sürüm kontrolü ve yetkisiz değişiklik uyarısı.</li>
+  <li><b>Uygulama bütünlüğü:</b> Program dosyalarının kendi özet doğrulaması (mevcut mühür sistemini genişletme).</li>
+  <li><b>Kişisel veri temizleme:</b> Hata ve tanılama raporlarında kullanıcı adı/IP temizliği.</li>
+  <li><b>Oturum yönetimi:</b> Boşta kalınca otomatik kilit, zaman aşımı, eşzamanlı oturum sınırı.</li>
+  <li><b>Şifreli kimlik deposu:</b> Kimlik dosyası şifreli ve bütünlük korumalı; yedek/kurtarma anahtarı prosedürü.</li>
+  <li><b>Yapılandırılabilir parola politikası:</b> Uzunluk, karmaşıklık, süre, yasaklı liste ve parola geçmişi.</li>
+  <li><b>Güvenli yazılım geliştirme:</b> Tehdit modelleme, statik analiz (SAST) ve bağımlılık taraması (SCA) CI'a eklensin.</li>
+</ol>
+
+<h3>F. Lisans ve ticari model (73-82)</h3>
+<ol start="73">
+  <li><b>Sunucu doğrulaması ve iptal listesi:</b> Çalınan/paylaşılan lisansı uzaktan geçersiz kılma.</li>
+  <li><b>Kota ve özellik bayrakları:</b> Kullanıcı, sensör ve varlık sayısına göre lisans; modül bazlı açma/kapama.</li>
+  <li><b>Lisans portalı:</b> Müşteri hesabı, lisans üretimi/yenileme ve makine değiştirme akışı.</li>
+  <li><b>Çok kiracılık (multi-tenant):</b> Hizmet sağlayıcıların (MSSP) müşteri başına ayrı ortam yönetmesi.</li>
+  <li><b>Paketleme:</b> Başlangıç / Pro / Kurumsal / MSSP paketleri, modül bazlı fiyatlama.</li>
+  <li><b>Çevrimdışı (air-gapped) lisans:</b> Kapalı ağ müşterileri için imzalı yenileme dosyası.</li>
+  <li><b>Kullanım ölçümü:</b> Tarama ve varlık sayısına göre faturalama altyapısı.</li>
+  <li><b>Deneme kötüye kullanım koruması:</b> Makine + hesap bağlı sunucu tarafı deneme kaydı.</li>
+  <li><b>İş ortağı ve beyaz etiket:</b> Bayi programı ve markalanabilir sürüm.</li>
+  <li><b>Hukuki paket:</b> EULA, KVKK aydınlatma metni, veri işleme sözleşmesi, güvenlik beyanı.</li>
+</ol>
+
+<h3>G. Kullanıcı deneyimi ve operasyon (83-92)</h3>
+<ol start="83">
+  <li><b>Kurulum sihirbazı:</b> MSI/MSIX ile kurulum; sensörü tek tıkla hazırlayan otomatik betik ve sağlık kontrolü.</li>
+  <li><b>Hazır sensör görüntüsü:</b> Elle kurulum gerektirmeyen önceden hazırlanmış OVA/ISO sensör.</li>
+  <li><b>Rehberli ilk kullanım:</b> Rol bazlı başlangıç panoları ve etkileşimli yönlendirme.</li>
+  <li><b>Erişilebilirlik:</b> Ekran okuyucu, klavyeyle gezinme, yüksek kontrast, ölçeklenebilir yazı.</li>
+  <li><b>Çok dil altyapısı:</b> TR/EN/DE vb. için yerelleştirme dosyaları.</li>
+  <li><b>Bildirim kanalları ve eskalasyon:</b> E-posta, Teams/Slack, SMS, mobil bildirim; kritik olayda yükseltme zinciri.</li>
+  <li><b>Mobil/web özet ve onay:</b> Telefondan risk puanı görme ve onay verme (örn. IP engelleme).</li>
+  <li><b>Otomasyon arayüzleri:</b> CLI, PowerShell modülü, REST API; CI/CD hattında "güvenlik kapısı".</li>
+  <li><b>Gelişmiş arama:</b> Kayıtlı görünümler, bulgu etiketleme ve atama.</li>
+  <li><b>Eğitim senaryoları:</b> Sahte laboratuvarla ekip eğitimi ve farkındalık testleri.</li>
+</ol>
+
+<h3>H. Kalite, test ve dağıtım (93-100)</h3>
+<ol start="93">
+  <li><b>CI/CD hattı:</b> Her değişiklikte derleme + test + güvenlik taraması + imzalı paket.</li>
+  <li><b>Otomatik laboratuvar:</b> Vagrant/Docker ile kurulan sanal ağda uçtan uca testler.</li>
+  <li><b>Arayüz otomasyon testleri:</b> FlaUI/WinAppDriver ve ekran görüntüsü karşılaştırma.</li>
+  <li><b>Performans testleri:</b> 1000+ varlıkta tarama süresi ve bellek ölçümü.</li>
+  <li><b>Doğruluk ölçümü:</b> DVWA/Metasploitable gibi bilinen zafiyetli ortamlarla yanlış pozitif/negatif oranı.</li>
+  <li><b>Bağımsız güvenlik denetimi:</b> Ürünün kendisi için sızma testi ve açık bildirim (vulnerability disclosure) programı.</li>
+  <li><b>Dokümantasyon:</b> Yönetici kılavuzu, API belgeleri, mimari karar kayıtları ve sürüm notları.</li>
+  <li><b>Sertifikasyon ve pilotlar:</b> ISO 27001 / SOC 2 yol haritası ve referans müşteri pilotları.</li>
+</ol>
+
+</div>
+
+<p style="margin-top:34px;color:var(--s);font-size:13px">Not: Bu belge, geliştirme sürecinde elde edilen gerçek duruma göre hazırlanmıştır; "denenmeyenler" bölümündeki maddeler gerçek operasyonel ortamda doğrulanana kadar kesin sonuç olarak sunulmamalıdır.</p>
+</div>
+</body>
+</html>

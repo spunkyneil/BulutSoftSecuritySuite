@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- Yalnızca kendi klasöründen yüklenir; hiçbir dış adrese bağlanmaz. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:" />
+<title>BulutSoft Canlı Koruma Küresi</title>
+<style>
+  /* Tema renkleri: ilk değerler yalnızca YEDEKTİR; program açılınca C# (DesignTokens) tokenları PostWebMessageAsJson ile yollar ve :root değişkenleri güncellenir. */
+  :root { --bg: #141B2E; --text-muted: #8896AB; --pill: rgba(28, 36, 56, 0.92); --border: #2A3650; }
+  body.light { --bg: #F0F4F8; --text-muted: #475569; --pill: rgba(255, 255, 255, 0.92); --border: #E2E8F0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Segoe UI', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  #stage { position: absolute; inset: 0; cursor: grab; }
+  #stage:active { cursor: grabbing; }
+  canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="c"></canvas></div>
+<script src="d3.min.js"></script>
+<script src="topojson-client.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* Durum modları ve renkler. 'pasif': koruma duraklatıldığında küre sakin dönmeye devam eder. */
+  const MODES = {
+    guvende: { title: 'Nöbetçi Modu Açık', subtitle: 'Bu bilgisayar 15 dakikada bir kontrol ediliyor', darkRgb: [16, 185, 129], lightRgb: [5, 150, 105], speedMult: 1.0, maxArcs: 70, spawnChance: 0.5,
+      arcPaletteDark: ['#06B6D4', '#6366F1', '#10B981', '#06B6D4', '#EF4444'], arcPaletteLight: ['#0891B2', '#4F46E5', '#059669', '#0891B2', '#DC2626'] },
+    dikkat: { title: 'Dikkat Gerektiren Bulgu Var', subtitle: 'Son kontrolde önerilen iyileştirmeler var', darkRgb: [245, 158, 11], lightRgb: [217, 119, 6], speedMult: 1.35, maxArcs: 85, spawnChance: 0.6,
+      arcPaletteDark: ['#F59E0B', '#6366F1', '#06B6D4', '#F59E0B', '#EF4444'], arcPaletteLight: ['#D97706', '#4F46E5', '#0891B2', '#D97706', '#DC2626'] },
+    kritik: { title: 'Kritik Bulgu Var', subtitle: 'Son kontrolde kritik bulgu tespit edildi', darkRgb: [239, 68, 68], lightRgb: [220, 38, 38], speedMult: 1.85, maxArcs: 110, spawnChance: 0.8,
+      arcPaletteDark: ['#EF4444', '#6366F1', '#EF4444', '#06B6D4', '#F59E0B'], arcPaletteLight: ['#DC2626', '#4F46E5', '#DC2626', '#0891B2', '#D97706'] },
+    pasif: { title: 'Nöbetçi Modu Kapalı', subtitle: 'Otomatik kontrol yok', darkRgb: [136, 150, 171], lightRgb: [100, 116, 139], speedMult: 0.55, maxArcs: 45, spawnChance: 0.35,
+      arcPaletteDark: ['#64748B', '#6366F1', '#64748B', '#0E7490'], arcPaletteLight: ['#94A3B8', '#6366F1', '#94A3B8', '#0891B2'] }
+  };
+
+  const BANNER_H = 40, MAX_LIFT = 0.16; // alt yazı kutusunun yüksekliği; yayların küre dışına en çok çıkma oranı
+  const TURKEY_ID = '792';
+  const NEIGHBORS = {
+    '300': { name: 'Yunanistan', coords: [22.9, 39.1] }, '100': { name: 'Bulgaristan', coords: [25.5, 42.7] }, '268': { name: 'Gürcistan', coords: [43.5, 42.2] },
+    '051': { name: 'Ermenistan', coords: [44.8, 40.2] }, '031': { name: 'Azerbaycan', coords: [47.6, 40.3] }, '364': { name: 'İran', coords: [53.2, 33.2] },
+    '368': { name: 'Irak', coords: [43.7, 33.1] }, '760': { name: 'Suriye', coords: [38.5, 35.1] }
+  };
+  const ANKARA_COORDS = [32.85, 39.93];
+  const TURKEY_LABEL_COORDS = [35.2, 39.0];
+  const GLOBAL_HUBS = [
+    { name: 'Ankara', coords: [32.85, 39.93], iso: '792' }, { name: 'İstanbul', coords: [28.97, 41.01], iso: '792' }, { name: 'Atina', coords: [23.72, 37.98], iso: '300' },
+    { name: 'Sofya', coords: [23.32, 42.69], iso: '100' }, { name: 'Bakü', coords: [49.86, 40.40], iso: '031' }, { name: 'Tiflis', coords: [44.79, 41.71], iso: '268' },
+    { name: 'Tahran', coords: [51.38, 35.68], iso: '364' }, { name: 'Bağdat', coords: [44.36, 33.31], iso: '368' }, { name: 'Frankfurt', coords: [8.68, 50.11], iso: '276' },
+    { name: 'Londra', coords: [-0.12, 51.50], iso: '826' }, { name: 'Paris', coords: [2.35, 48.85], iso: '250' }, { name: 'Moskova', coords: [37.61, 55.75], iso: '643' },
+    { name: 'Kahire', coords: [31.23, 30.04], iso: '818' }, { name: 'Dubai', coords: [55.27, 25.20], iso: '784' }, { name: 'Mumbai', coords: [72.87, 19.07], iso: '356' },
+    { name: 'Pekin', coords: [116.40, 39.90], iso: '156' }, { name: 'New York', coords: [-74.00, 40.71], iso: '840' },
+    { name: 'Madrid', coords: [-3.70, 40.42], iso: '724' }, { name: 'Roma', coords: [12.50, 41.90], iso: '380' }, { name: 'Varşova', coords: [21.01, 52.23], iso: '616' }, { name: 'Kiev', coords: [30.52, 50.45], iso: '804' },
+    { name: 'Stokholm', coords: [18.07, 59.33], iso: '752' }, { name: 'Riyad', coords: [46.68, 24.71], iso: '682' }, { name: 'Tel Aviv', coords: [34.78, 32.08], iso: '376' }, { name: 'Karaçi', coords: [67.01, 24.86], iso: '586' },
+    { name: 'Astana', coords: [71.43, 51.17], iso: '398' }, { name: 'Tokyo', coords: [139.69, 35.69], iso: '392' }, { name: 'Seul', coords: [126.98, 37.57], iso: '410' }, { name: 'Cakarta', coords: [106.85, -6.21], iso: '360' },
+    { name: 'Bangkok', coords: [100.50, 13.76], iso: '764' }, { name: 'Sidney', coords: [151.21, -33.87], iso: '036' }, { name: 'Johannesburg', coords: [28.05, -26.20], iso: '710' }, { name: 'Lagos', coords: [3.38, 6.52], iso: '566' },
+    { name: 'Nairobi', coords: [36.82, -1.29], iso: '404' }, { name: 'Addis Ababa', coords: [38.75, 9.03], iso: '231' }, { name: 'Cezayir', coords: [3.06, 36.75], iso: '012' }, { name: 'Rabat', coords: [-6.84, 34.02], iso: '504' },
+    { name: 'Sao Paulo', coords: [-46.63, -23.55], iso: '076' }, { name: 'Buenos Aires', coords: [-58.38, -34.60], iso: '032' }, { name: 'Santiago', coords: [-70.67, -33.45], iso: '152' }, { name: 'Mexico City', coords: [-99.13, 19.43], iso: '484' },
+    { name: 'Toronto', coords: [-79.38, 43.65], iso: '124' }, { name: 'Amsterdam', coords: [4.90, 52.37], iso: '528' }, { name: 'Zürih', coords: [8.54, 47.38], iso: '756' }, { name: 'Oslo', coords: [10.75, 59.91], iso: '578' },
+    { name: 'Şam', coords: [36.29, 33.51], iso: '760' }, { name: 'Beyrut', coords: [35.50, 33.89], iso: '422' }, { name: 'Amman', coords: [35.93, 31.95], iso: '400' }, { name: 'Kuveyt', coords: [47.98, 29.38], iso: '414' },
+    { name: 'Doha', coords: [51.53, 25.29], iso: '634' }, { name: 'Maskat', coords: [58.41, 23.59], iso: '512' }, { name: 'Erivan', coords: [44.51, 40.18], iso: '051' }, { name: 'Taşkent', coords: [69.24, 41.30], iso: '860' },
+    { name: 'Kabil', coords: [69.17, 34.53], iso: '004' }, { name: 'Aşkabat', coords: [58.38, 37.95], iso: '795' }, { name: 'Bişkek', coords: [74.59, 42.87], iso: '417' }, { name: 'Belgrad', coords: [20.46, 44.79], iso: '688' },
+    { name: 'Bükreş', coords: [26.10, 44.43], iso: '642' }, { name: 'Budapeşte', coords: [19.04, 47.50], iso: '348' }, { name: 'Viyana', coords: [16.37, 48.21], iso: '040' }, { name: 'Prag', coords: [14.42, 50.08], iso: '203' },
+    { name: 'Berlin', coords: [13.40, 52.52], iso: '276' }, { name: 'Brüksel', coords: [4.35, 50.85], iso: '056' }, { name: 'Lizbon', coords: [-9.14, 38.72], iso: '620' }, { name: 'Dublin', coords: [-6.26, 53.35], iso: '372' },
+    { name: 'Helsinki', coords: [24.94, 60.17], iso: '246' }, { name: 'Minsk', coords: [27.57, 53.90], iso: '112' }, { name: 'Kişinev', coords: [28.86, 47.01], iso: '498' }, { name: 'Tunus', coords: [10.18, 36.81], iso: '788' },
+    { name: 'Trablus', coords: [13.19, 32.89], iso: '434' }, { name: 'Hartum', coords: [32.56, 15.50], iso: '729' }, { name: 'Lefkoşa', coords: [33.38, 35.19], iso: '196' }, { name: 'Tiran', coords: [19.82, 41.33], iso: '008' },
+    { name: 'Zagreb', coords: [15.98, 45.81], iso: '191' }, { name: 'Saraybosna', coords: [18.41, 43.86], iso: '070' }, { name: 'Üsküp', coords: [21.43, 42.00], iso: '807' }, { name: 'Bratislava', coords: [17.11, 48.15], iso: '703' }
+  ];
+
+  /* Ülke adları (harita dosyasındaki İngilizce ad -> Türkçe). Bulunamazsa özgün ad gösterilir. */
+  const TR_AD = {
+    'Fiji': 'Fiji', 'Tanzania': 'Tanzanya', 'W. Sahara': 'Batı Sahra', 'Canada': 'Kanada', 'United States of America': 'Amerika Birleşik Devletleri', 'Kazakhstan': 'Kazakistan', 'Uzbekistan': 'Özbekistan',
+    'Papua New Guinea': 'Papua Yeni Gine', 'Indonesia': 'Endonezya', 'Argentina': 'Arjantin', 'Chile': 'Şili', 'Dem. Rep. Congo': 'Kongo Demokratik Cumhuriyeti', 'Somalia': 'Somali', 'Kenya': 'Kenya',
+    'Sudan': 'Sudan', 'Chad': 'Çad', 'Haiti': 'Haiti', 'Dominican Rep.': 'Dominik Cumhuriyeti', 'Russia': 'Rusya', 'Bahamas': 'Bahamalar', 'Falkland Is.': 'Falkland Adaları', 'Norway': 'Norveç',
+    'Greenland': 'Grönland', 'Fr. S. Antarctic Lands': 'Fransız Güney Toprakları', 'Timor-Leste': 'Doğu Timor', 'South Africa': 'Güney Afrika', 'Lesotho': 'Lesotho', 'Mexico': 'Meksika', 'Uruguay': 'Uruguay',
+    'Brazil': 'Brezilya', 'Bolivia': 'Bolivya', 'Peru': 'Peru', 'Colombia': 'Kolombiya', 'Panama': 'Panama', 'Costa Rica': 'Kosta Rika', 'Nicaragua': 'Nikaragua', 'Honduras': 'Honduras',
+    'El Salvador': 'El Salvador', 'Guatemala': 'Guatemala', 'Belize': 'Belize', 'Venezuela': 'Venezuela', 'Guyana': 'Guyana', 'Suriname': 'Surinam', 'France': 'Fransa', 'Ecuador': 'Ekvador',
+    'Puerto Rico': 'Porto Riko', 'Jamaica': 'Jamaika', 'Cuba': 'Küba', 'Zimbabwe': 'Zimbabve', 'Botswana': 'Botsvana', 'Namibia': 'Namibya', 'Senegal': 'Senegal', 'Mali': 'Mali', 'Mauritania': 'Moritanya',
+    'Benin': 'Benin', 'Niger': 'Nijer', 'Nigeria': 'Nijerya', 'Cameroon': 'Kamerun', 'Togo': 'Togo', 'Ghana': 'Gana', "Côte d'Ivoire": 'Fildişi Sahili', 'Guinea': 'Gine', 'Guinea-Bissau': 'Gine-Bissau',
+    'Liberia': 'Liberya', 'Sierra Leone': 'Sierra Leone', 'Burkina Faso': 'Burkina Faso', 'Central African Rep.': 'Orta Afrika Cumhuriyeti', 'Congo': 'Kongo', 'Gabon': 'Gabon', 'Eq. Guinea': 'Ekvator Ginesi',
+    'Zambia': 'Zambiya', 'Malawi': 'Malavi', 'Mozambique': 'Mozambik', 'eSwatini': 'Esvatini', 'Angola': 'Angola', 'Burundi': 'Burundi', 'Israel': 'İsrail', 'Lebanon': 'Lübnan', 'Madagascar': 'Madagaskar',
+    'Palestine': 'Filistin', 'Gambia': 'Gambiya', 'Tunisia': 'Tunus', 'Algeria': 'Cezayir', 'Jordan': 'Ürdün', 'United Arab Emirates': 'Birleşik Arap Emirlikleri', 'Qatar': 'Katar', 'Kuwait': 'Kuveyt',
+    'Iraq': 'Irak', 'Oman': 'Umman', 'Vanuatu': 'Vanuatu', 'Cambodia': 'Kamboçya', 'Thailand': 'Tayland', 'Laos': 'Laos', 'Myanmar': 'Myanmar', 'Vietnam': 'Vietnam', 'North Korea': 'Kuzey Kore',
+    'South Korea': 'Güney Kore', 'Mongolia': 'Moğolistan', 'India': 'Hindistan', 'Bangladesh': 'Bangladeş', 'Bhutan': 'Butan', 'Nepal': 'Nepal', 'Pakistan': 'Pakistan', 'Afghanistan': 'Afganistan',
+    'Tajikistan': 'Tacikistan', 'Kyrgyzstan': 'Kırgızistan', 'Turkmenistan': 'Türkmenistan', 'Iran': 'İran', 'Syria': 'Suriye', 'Armenia': 'Ermenistan', 'Sweden': 'İsveç', 'Belarus': 'Belarus',
+    'Ukraine': 'Ukrayna', 'Poland': 'Polonya', 'Austria': 'Avusturya', 'Hungary': 'Macaristan', 'Moldova': 'Moldova', 'Romania': 'Romanya', 'Lithuania': 'Litvanya', 'Latvia': 'Letonya', 'Estonia': 'Estonya',
+    'Germany': 'Almanya', 'Bulgaria': 'Bulgaristan', 'Greece': 'Yunanistan', 'Turkey': 'Türkiye', 'Albania': 'Arnavutluk', 'Croatia': 'Hırvatistan', 'Switzerland': 'İsviçre', 'Luxembourg': 'Lüksemburg',
+    'Belgium': 'Belçika', 'Netherlands': 'Hollanda', 'Portugal': 'Portekiz', 'Spain': 'İspanya', 'Ireland': 'İrlanda', 'New Caledonia': 'Yeni Kaledonya', 'Solomon Is.': 'Solomon Adaları', 'New Zealand': 'Yeni Zelanda',
+    'Australia': 'Avustralya', 'Sri Lanka': 'Sri Lanka', 'China': 'Çin', 'Taiwan': 'Tayvan', 'Italy': 'İtalya', 'Denmark': 'Danimarka', 'United Kingdom': 'Birleşik Krallık', 'Iceland': 'İzlanda',
+    'Azerbaijan': 'Azerbaycan', 'Georgia': 'Gürcistan', 'Philippines': 'Filipinler', 'Malaysia': 'Malezya', 'Brunei': 'Brunei', 'Slovenia': 'Slovenya', 'Finland': 'Finlandiya', 'Slovakia': 'Slovakya',
+    'Czechia': 'Çekya', 'Eritrea': 'Eritre', 'Japan': 'Japonya', 'Paraguay': 'Paraguay', 'Yemen': 'Yemen', 'Saudi Arabia': 'Suudi Arabistan', 'Antarctica': 'Antarktika', 'N. Cyprus': 'Kuzey Kıbrıs',
+    'Cyprus': 'Kıbrıs', 'Morocco': 'Fas', 'Egypt': 'Mısır', 'Libya': 'Libya', 'Ethiopia': 'Etiyopya', 'Djibouti': 'Cibuti', 'Somaliland': 'Somaliland', 'Uganda': 'Uganda', 'Rwanda': 'Ruanda',
+    'Bosnia and Herz.': 'Bosna-Hersek', 'Macedonia': 'Kuzey Makedonya', 'Serbia': 'Sırbistan', 'Montenegro': 'Karadağ', 'Kosovo': 'Kosova', 'Trinidad and Tobago': 'Trinidad ve Tobago', 'S. Sudan': 'Güney Sudan'
+  };
+  const ZOOM_MAX = 8, OTO_DONUS = 6; // en çok büyütme; imleç dışındayken otomatik dönüş hızı (derece/sn, yaklaşık 60 sn'de bir tur)
+  /* Küre üzerinde sığması için kısaltılan ülke adları. */
+  const KISA_AD = { 'Amerika Birleşik Devletleri': 'ABD', 'Birleşik Arap Emirlikleri': 'BAE', 'Kongo Demokratik Cumhuriyeti': 'DR Kongo', 'Orta Afrika Cumhuriyeti': 'Orta Afrika', 'Dominik Cumhuriyeti': 'Dominik', 'Birleşik Krallık': 'İngiltere', 'Papua Yeni Gine': 'Papua Y. Gine', 'Fransız Güney Toprakları': '' };
+
+  const state = {
+    theme: 'dark', demoYay: false, modeKey: 'guvende', showShield: true, readOnly: false, hizmet: '', currentRgb: [16, 185, 129],
+    rotLon: 35, rotLat: 39, userHasDragged: false, isDragging: false, dragMoved: 0, lastPointerX: 0, lastPointerY: 0,
+    disariSn: 0, isik: null, isikHit: null, hoverIsik: false, zoom: 1, cam: null, saved: null, focusIdx: -1, hoverIdx: -1, mx: 0, my: 0, mouseIn: false, hoverT: 0,
+    elapsed: 0, outerAngle: 0, innerAngle: 180, ripple1: 0, ripple2: 0.5, breathePhase: 0,
+    countries: [], mapLoaded: false, mapError: false, shieldHit: { x: 0, y: 0, r: 0 }
+  };
+  const countryFlashes = new Map();
+  const arcs = [];
+  const impactRings = [];
+
+  function effKey() { return state.showShield ? state.modeKey : 'pasif'; }
+
+  /* Tasarım tokenları: C# DesignTokens renkleri JSON ile yollar (tip:'tokenlar'); :root CSS değişkenleri ve canvas renkleri buradan gelir.
+     Elle eşleştirme yoktur: ileti gelmediyse (tarayıcıda deneme) yukarıdaki yedek renkler kullanılır. */
+  const TOK = { hex: {}, rgb: {} };
+  const TOK_MOD = { guvende: 'statusSuccess', dikkat: 'statusWarning', kritik: 'statusDanger', pasif: 'textMuted' };
+  function hexRgb(h) { const m = /^#([0-9a-f]{6})$/i.exec(h || ''); return m ? [parseInt(m[1].slice(0, 2), 16), parseInt(m[1].slice(2, 4), 16), parseInt(m[1].slice(4, 6), 16)] : null; }
+  function tokHex(ad, yedek) { return TOK.hex[ad] || yedek; }
+  function tokRgb(ad, yedek) { return TOK.rgb[ad] || yedek; }
+  function tireAdi(s) { return s.replace(/[A-Z]/g, c => '-' + c.toLowerCase()); }
+  function tokenlariUygula(o) {
+    if (!o || o.tip !== 'tokenlar' || !o.renkler) return;
+    const kok = document.documentElement.style;
+    for (const k of Object.keys(o.renkler)) { const v = o.renkler[k], rgb = hexRgb(v); if (!rgb) continue; TOK.hex[k] = v; TOK.rgb[k] = rgb; kok.setProperty('--' + tireAdi(k), v); }
+    // Eski değişken adları da tokenlardan türetilir.
+    if (TOK.hex.surfaceApp) kok.setProperty('--bg', TOK.hex.surfaceApp);
+    if (TOK.hex.textMuted) kok.setProperty('--text-muted', TOK.hex.textMuted);
+    if (TOK.hex.borderSubtle) kok.setProperty('--border', TOK.hex.borderSubtle);
+    if (TOK.rgb.surfaceCard) kok.setProperty('--pill', 'rgba(' + TOK.rgb.surfaceCard.join(', ') + ', 0.92)');
+    if (typeof o.koyu === 'boolean') { state.theme = o.koyu ? 'dark' : 'light'; document.body.classList.toggle('light', !o.koyu); }
+  }
+  if (window.chrome && window.chrome.webview) window.chrome.webview.addEventListener('message', e => tokenlariUygula(e.data));
+  function arcPalet(anahtar, mode, isDark) {
+    const i = TOK.hex.statusInfo; if (!i) return isDark ? mode.arcPaletteDark : mode.arcPaletteLight;
+    const a = TOK.hex.accentPrimary, s = TOK.hex.statusSuccess, w = TOK.hex.statusWarning, d = TOK.hex.statusDanger, m = TOK.hex.textMuted;
+    return { guvende: [i, a, s, i, d], dikkat: [w, a, i, w, d], kritik: [d, a, d, i, w], pasif: [m, a, m, i] }[anahtar] || (isDark ? mode.arcPaletteDark : mode.arcPaletteLight);
+  }
+
+  /* Haritayı yerel dosyadan yükle (internet gerekmez). */
+  async function loadWorldAtlas() {
+    try {
+      const res = await fetch('countries-110m.json');
+      if (!res.ok) throw new Error('harita yok');
+      const topo = await res.json();
+      const fc = topojson.feature(topo, topo.objects.countries);
+      state.countries = fc.features.map(f => { f.iso = String(f.id).padStart(3, '0'); const en = f.properties && f.properties.name; f.ad = TR_AD[en] || en || ''; f.etiket = f.ad in KISA_AD ? KISA_AD[f.ad] : f.ad; sikilastir(f); const m = ulkeMerkezi(f); f.merkez = m.c; f.yar = m.r; f.rmax = ulkeEnUzak(f, m.c); return f; });
+      // Etiket önceliği: Türkiye, komşuları, sonra büyük ülkeden küçüğe (yer çakışırsa küçük olan yazılmaz).
+      state.isoHarita = new Map(); for (const f of state.countries) state.isoHarita.set(f.iso, f); state.etiketAlfa = new Float32Array(state.countries.length);
+      state.etiketSirasi = state.countries.map((f, i) => i).sort((a, b) => { const pa = state.countries[a].iso === TURKEY_ID ? 2 : NEIGHBORS[state.countries[a].iso] ? 1 : 0, pb = state.countries[b].iso === TURKEY_ID ? 2 : NEIGHBORS[state.countries[b].iso] ? 1 : 0; return pb - pa || state.countries[b].yar - state.countries[a].yar; });
+      state.mapLoaded = true;
+    } catch (e) { state.mapError = true; }
+  }
+
+  const container = document.getElementById('stage');
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let width = 960, height = 400;
+  // Hız ve titreme için: uzun kenarlar yüklemede BİR KEZ sıklaştırılır (sikilastir), böylece d3'ün her karede yaptığı pahalı uyarlamalı örnekleme kapatılabilir (precision 0).
+  const projection = d3.geoOrthographic().clipAngle(90).precision(0);
+  const projFull = d3.geoOrthographic().clipAngle(180); // kırpmasız ikizi: küre arkasındaki bir noktanın yönünü bulmak için
+  const pathGen = d3.geoPath(projection, ctx);
+  const graticule = d3.geoGraticule10();
+  // Durağan görünüm önbelleği (bkz. cizTaban) ve zayıf ekran kartları için çözünürlük sınırı (uyarlanabilir kare hızı yeterli olmazsa düşürülür).
+  const taban = document.createElement('canvas'), tctx = taban.getContext('2d'), tabanYol = d3.geoPath(projection, tctx);
+  let tabanAnahtar = '', tabanSon = '', dprSiniri = 2;
+
+  function resizeCanvas() {
+    const rect = container.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, dprSiniri);
+    width = Math.max(200, rect.width); height = Math.max(140, rect.height);
+    canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    taban.width = canvas.width; taban.height = canvas.height; tctx.setTransform(dpr, 0, 0, dpr, 0, 0); tabanAnahtar = ''; tabanSon = '';
+  }
+  window.addEventListener('resize', resizeCanvas);
+  if (window.ResizeObserver) new ResizeObserver(resizeCanvas).observe(container);
+  resizeCanvas();
+
+  /* Sürükleme ve kalkana tıklama (kısa tıklama = kalkan açma/kapama isteği). */
+  function overShield(e) {
+    const r = canvas.getBoundingClientRect(), dx = e.clientX - r.left - state.shieldHit.x, dy = e.clientY - r.top - state.shieldHit.y;
+    return Math.hypot(dx, dy) <= state.shieldHit.r;
+  }
+  canvas.addEventListener('pointerdown', (e) => {
+    state.isDragging = true; state.dragMoved = 0; state.lastPointerX = e.clientX; state.lastPointerY = e.clientY; canvas.setPointerCapture(e.pointerId);
+  });
+  function konum(e) { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+  canvas.addEventListener('pointermove', (e) => {
+    const p = konum(e); state.mx = p[0]; state.my = p[1]; state.mouseIn = true;
+    if (!state.isDragging) { canvas.style.cursor = (overShield(e) && !state.readOnly) ? 'pointer' : (state.hoverIdx >= 0 ? 'pointer' : ''); return; }
+    const dx = e.clientX - state.lastPointerX, dy = e.clientY - state.lastPointerY; state.dragMoved += Math.abs(dx) + Math.abs(dy);
+    if (state.dragMoved > 6) { state.userHasDragged = true; state.cam = null; }
+    const hassas = 1 / Math.max(1, state.zoom); // yakınlaşınca sürükleme yavaşlar, harita parmağı izler
+    state.rotLon = (state.rotLon - dx * 0.35 * hassas + 540) % 360 - 180; state.rotLat = Math.max(-75, Math.min(75, state.rotLat + dy * 0.30 * hassas));
+    state.lastPointerX = e.clientX; state.lastPointerY = e.clientY;
+  });
+  canvas.addEventListener('pointerleave', () => { state.mouseIn = false; state.hoverIdx = -1; });
+  canvas.addEventListener('pointerup', (e) => {
+    const tikla = state.isDragging && state.dragMoved <= 6; state.isDragging = false;
+    if (!tikla) return;
+    if (!state.readOnly && overShield(e)) { try { window.chrome.webview.postMessage('kalkan-tikla'); } catch (x) { /* tarayıcıda test: köprü yok */ } return; }
+    const p = konum(e);
+    if (isikUstunde(p[0], p[1])) { try { window.chrome.webview.postMessage('isik-tikla'); } catch (x) { /* tarayıcıda test: köprü yok */ } return; } state.mx = p[0]; state.my = p[1]; state.hoverIdx = ulkeBul(p[0], p[1]);
+    if (state.hoverIdx >= 0) odakla(state.hoverIdx); else if (state.focusIdx >= 0) odakKaldir();
+  });
+  /* Tekerlek: imlecin altındaki bölgeye doğru yakınlaşır/uzaklaşır. */
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault(); const p = konum(e), eski = state.zoom, yeni = Math.max(1, Math.min(ZOOM_MAX, eski * Math.exp(-e.deltaY * 0.0016)));
+    if (yeni === eski) return; state.cam = null;
+    if (yeni > eski) { const g = projection.invert(p); if (g && isFrontHemisphere(g)) { const k = Math.min(0.35, (yeni / eski - 1) * 1.6); state.rotLon += angFark(state.rotLon, g[0]) * k; state.rotLat += (g[1] - state.rotLat) * k; state.rotLon = (state.rotLon + 540) % 360 - 180; } }
+    state.zoom = yeni; if (yeni <= 1.001) { state.zoom = 1; state.focusIdx = -1; }
+  }, { passive: false });
+
+  /* C# tarafı imlecin küre panelinin dışına çıktığını bildirir (WebView2 bazen çıkış olayını vermez). */
+  window.bsImlec = function (iceride) { if (!iceride) { state.mouseIn = false; state.hoverIdx = -1; state.hoverIsik = false; } };
+  /* Bildirim ışığı (yalnızca Uzman Görünüm yollar): Uyarı = sarı, Kritik = kırmızı; programın çalıştığı yerde (Ankara) yanar. */
+  function isikUstunde(x, y) { const h = state.isikHit; return Boolean(h) && Math.hypot(x - h.x, y - h.y) <= h.r; }
+  function drawIsik(isDark) {
+    const o = state.isik; state.isikHit = null; if (!o) return;
+    let pt, arkada = false;
+    if (isFrontHemisphere(ANKARA_COORDS)) pt = projection(ANKARA_COORDS);
+    else { // Ankara küre arkasında: ışık, yönünü gösteren küçük bir işaretle kürenin kenarında yanar (alarm gözden kaçmasın)
+      const q = projFull(ANKARA_COORDS), gc = state.gc; if (!q || !gc) return; const dx = q[0] - gc[0], dy = q[1] - gc[1], n = Math.hypot(dx, dy) || 1, R = state.gR * 0.985;
+      pt = [gc[0] + dx / n * R, gc[1] + dy / n * R]; arkada = true;
+    }
+    if (!pt) return; const sh = state.shieldHit; if (state.showShield && Math.hypot(pt[0] - sh.x, pt[1] - sh.y) < sh.r * 1.2) return;
+    const kritik = o.seviye === 'Kritik', c = kritik ? [239, 68, 68] : [245, 158, 11], ph = (state.elapsed * (kritik ? 1.6 : 0.9)) % 1;
+    ctx.save();
+    for (let i = 0; i < 2; i++) { const p = (ph + i * 0.5) % 1; ctx.beginPath(); ctx.arc(pt[0], pt[1], 5 + p * 22, 0, Math.PI * 2); ctx.strokeStyle = rgba(c, (1 - p) * 0.85); ctx.lineWidth = 2; ctx.stroke(); }
+    ctx.beginPath(); ctx.arc(pt[0], pt[1], arkada ? 4 : 5.5, 0, Math.PI * 2); ctx.fillStyle = rgba(c, arkada ? 0.85 : 1); ctx.shadowColor = rgba(c, 1); ctx.shadowBlur = 16; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
+    state.isikHit = { x: pt[0], y: pt[1], r: 14, arkada };
+  }
+  window.bsIsik = function (o) { state.isik = (o && typeof o === 'object') ? { kritik: o.kritik | 0, uyari: o.uyari | 0, seviye: String(o.seviye || ''), mesaj: String(o.mesaj || ''), zaman: String(o.zaman || '') } : null; };
+
+  function angFark(a, b) { return ((b - a + 540) % 360) - 180; }
+  /* İmlecin altındaki ülkenin sırası (yoksa -1). Kalkanın altı ve kürenin dışı sayılmaz. */
+  function ulkeBul(x, y) {
+    if (!state.mapLoaded) return -1; const sh = state.shieldHit; if (state.showShield && Math.hypot(x - sh.x, y - sh.y) <= sh.r) return -1;
+    const g = projection.invert([x, y]); if (!g || !isFinite(g[0]) || !isFinite(g[1]) || !isFrontHemisphere(g)) return -1;
+    for (let i = 0; i < state.countries.length; i++) if (d3.geoContains(state.countries[i], g)) return i;
+    return -1;
+  }
+  /* Ülkenin en büyük parçasının merkezi ve kabaca açısal yarıçapı (ABD, Rusya gibi çok parçalı ülkelerde ana kara alınır). */
+  function ulkeMerkezi(f) {
+    let en = f; if (f.geometry && f.geometry.type === 'MultiPolygon') { let ea = -1; for (const c of f.geometry.coordinates) { const poly = { type: 'Polygon', coordinates: c }, a = d3.geoArea(poly); if (a > ea) { ea = a; en = poly; } } }
+    return { c: d3.geoCentroid(en), r: Math.sqrt(d3.geoArea(en) / Math.PI) };
+  }
+  /* Ülke sınırlarındaki 2°'den uzun kenarlara ara noktalar ekler (büyük daire üzerinde); küre üzerinde eğri görünürler. */
+  function sikilastir(f) {
+    const g = f.geometry; if (!g) return; const ESIK = 0.035;
+    const halka = (r) => { const o = []; for (let i = 0; i < r.length; i++) { const a = r[i]; o.push(a); if (i < r.length - 1) { const b = r[i + 1], d = d3.geoDistance(a, b); if (d > ESIK && isFinite(d)) { const it = d3.geoInterpolate(a, b), n = Math.ceil(d / ESIK); for (let k = 1; k < n; k++) o.push(it(k / n)); } } } return o; };
+    if (g.type === 'Polygon') g.coordinates = g.coordinates.map(halka); else if (g.type === 'MultiPolygon') g.coordinates = g.coordinates.map(p => p.map(halka));
+  }
+  /* Ülkenin merkezine en uzak sınır noktasının açısal uzaklığı (görünmeyen ülkeleri çizmeden elemek için). */
+  function ulkeEnUzak(f, c) {
+    let en = 0; const tara = (d) => { if (typeof d[0] === 'number') { const u = d3.geoDistance(c, d); if (u > en) en = u; } else for (const x of d) tara(x); };
+    if (f.geometry) tara(f.geometry.coordinates); return en + 0.01;
+  }
+  function odakla(i) {
+    if (state.focusIdx === i) { odakKaldir(); return; }
+    if (state.focusIdx < 0) state.saved = { lon: state.rotLon, lat: state.rotLat, zoom: state.zoom };
+    const m = ulkeMerkezi(state.countries[i]); state.focusIdx = i;
+    state.cam = { lon: m.c[0], lat: Math.max(-75, Math.min(75, m.c[1])), zoom: Math.max(1.6, Math.min(ZOOM_MAX, 0.6 / Math.max(0.05, Math.sin(Math.min(m.r, 1.2))))) };
+  }
+  function odakKaldir() {
+    const s = state.saved || { lon: state.rotLon, lat: state.rotLat, zoom: 1 }; state.focusIdx = -1;
+    state.cam = { lon: s.lon, lat: s.lat, zoom: s.zoom }; state.saved = null;
+  }
+
+  function hexToRgb(hex) { const n = parseInt(hex.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function rgba(rgb, a) { return 'rgba(' + Math.round(rgb[0]) + ', ' + Math.round(rgb[1]) + ', ' + Math.round(rgb[2]) + ', ' + a.toFixed(3) + ')'; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function isFrontHemisphere(coords) { return d3.geoDistance(coords, [state.rotLon, state.rotLat]) < Math.PI / 2 - 0.04; }
+  function flashCountry(iso, colorHex, strength) { if (!iso) return; const prev = countryFlashes.get(iso); countryFlashes.set(iso, { color: colorHex, alpha: Math.min(1, Math.max(prev ? prev.alpha : 0, strength)) }); }
+
+  /* Şu an ekranda görünen (ön yüzde ve tuval içinde) şehir noktaları. */
+  function gorunurHublar() {
+    const r = []; for (const h of GLOBAL_HUBS) { if (!isFrontHemisphere(h.coords)) continue; const p = projection(h.coords); if (p && p[0] >= 0 && p[0] <= width && p[1] >= 0 && p[1] <= height) r.push(h); }
+    return r;
+  }
+  function spawnArc() {
+    const mode = MODES[effKey()], palette = arcPalet(effKey(), mode, state.theme === 'dark'); let from, to;
+    // Yakınlaşılmışsa (veya çoğu zaman) yaylar ekranda GÖRÜNEN şehirler arasında başlatılır; böylece bakılan bölgede hep ışık zıplar.
+    const gor = state.mapLoaded ? gorunurHublar() : [];
+    if (gor.length >= 2 && (state.zoom > 1.15 || Math.random() < 0.7)) { from = gor[Math.floor(Math.random() * gor.length)]; to = gor[Math.floor(Math.random() * gor.length)]; }
+    else if (Math.random() < 0.6) {
+      const local = GLOBAL_HUBS.slice(0, 8), a = local[Math.floor(Math.random() * local.length)], b = GLOBAL_HUBS[Math.floor(Math.random() * GLOBAL_HUBS.length)];
+      if (Math.random() < 0.5) { from = a; to = b; } else { from = b; to = a; }
+    } else { from = GLOBAL_HUBS[Math.floor(Math.random() * GLOBAL_HUBS.length)]; to = GLOBAL_HUBS[Math.floor(Math.random() * GLOBAL_HUBS.length)]; }
+    if (from === to) return;
+    const color = palette[Math.floor(Math.random() * palette.length)];
+    flashCountry(from.iso, color, state.modeKey === 'kritik' ? 0.8 : 0.55);
+    const dist = d3.geoDistance(from.coords, to.coords);
+    arcs.push({ from, to, interp: d3.geoInterpolate(from.coords, to.coords), color, progress: 0, speed: (0.0055 + Math.random() * 0.0055) * mode.speedMult, tail: 0.28 + Math.random() * 0.16, lift: 0.06 + Math.min(MAX_LIFT - 0.06, dist * 0.06), landed: false });
+  }
+  /* Görsel demo yayları varsayılan KAPALIdır: gerçek koruma durumu ve gerçek olay ışığı öne çıkar. Açılınca ilk yaylar bir kerede hazırlanır. */
+  function demoYaylariHazirla() { for (let i = 0; i < 30; i++) { spawnArc(); if (arcs.length) arcs[arcs.length - 1].progress = Math.random(); } }
+
+  // Statik katman: halo + okyanus + ızgara + ülkeler (Türkiye/komşular dahil). c/P: hedef bağlam ve ona bağlı yol üreteci (ana tuval ya da önbellek tuvali).
+  function cizTaban(c, P, isDark, cx, cy, radius) {
+    c.save();
+    const haloGrad = c.createRadialGradient(cx, cy, radius * 0.88, cx, cy, radius * 1.24);
+    if (isDark) { haloGrad.addColorStop(0, 'rgba(6, 182, 212, 0.22)'); haloGrad.addColorStop(0.55, 'rgba(99, 102, 241, 0.12)'); haloGrad.addColorStop(1, 'rgba(20, 27, 46, 0)'); }
+    else { haloGrad.addColorStop(0, 'rgba(79, 70, 229, 0.14)'); haloGrad.addColorStop(0.55, 'rgba(6, 182, 212, 0.08)'); haloGrad.addColorStop(1, 'rgba(240, 244, 248, 0)'); }
+    c.beginPath(); c.arc(cx, cy, radius * 1.24, 0, Math.PI * 2); c.fillStyle = haloGrad; c.fill(); c.restore();
+
+    c.save();
+    const oceanGrad = c.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, radius * 0.08, cx, cy, radius);
+    if (isDark) { oceanGrad.addColorStop(0, '#1B2A44'); oceanGrad.addColorStop(0.65, '#111A2E'); oceanGrad.addColorStop(1, '#0B1222'); }
+    else { oceanGrad.addColorStop(0, '#FFFFFF'); oceanGrad.addColorStop(0.65, '#E8F0FA'); oceanGrad.addColorStop(1, '#D3E2F4'); }
+    c.beginPath(); P({ type: 'Sphere' }); c.fillStyle = oceanGrad; c.fill(); // (büyük gölge bulanıklığı her karede çok pahalı olduğu için kaldırıldı)
+    c.beginPath(); P(graticule); c.strokeStyle = isDark ? 'rgba(99, 102, 241, 0.11)' : 'rgba(100, 116, 139, 0.16)'; c.lineWidth = 0.7; c.stroke();
+    if (state.mapLoaded) {
+      // Hız için: sıradan ülkeler TEK yolda toplanıp bir kez doldurulur/çizilir; Türkiye, komşular ve vurgulananlar ayrıca çizilir.
+      const fadeRate = state.modeKey === 'kritik' ? 0.8 : 0.5, ozel = [];
+      // Hız için: tamamen görünmeyen ülkeler (kürenin arkasında ya da yakınlaşınca ekranın dışında) hiç işlenmez.
+      const orta = [state.rotLon, state.rotLat]; let sinir = Math.PI / 2;
+      if (state.zoom > 1.4) { const yari = Math.hypot(Math.max(cx, width - cx), Math.max(cy, height - cy)); sinir = Math.min(sinir, Math.asin(Math.min(1, yari / radius)) + 0.05); }
+      c.beginPath();
+      for (let i = 0; i < state.countries.length; i++) {
+        const feature = state.countries[i], iso = feature.iso;
+        if (feature.merkez && d3.geoDistance(feature.merkez, orta) - feature.rmax > sinir) continue;
+        if (iso === TURKEY_ID || NEIGHBORS[iso]) ozel.push(feature); else P(feature);
+      }
+      c.fillStyle = isDark ? 'rgba(30, 42, 66, 0.78)' : 'rgba(203, 213, 225, 0.65)'; c.fill(); c.strokeStyle = isDark ? 'rgba(6, 182, 212, 0.24)' : 'rgba(148, 163, 184, 0.62)'; c.lineWidth = 0.65; c.stroke();
+      for (const feature of ozel) {
+        c.beginPath(); P(feature);
+        if (feature.iso === TURKEY_ID) { const t = state.currentRgb; c.fillStyle = rgba(t, isDark ? 0.36 : 0.28); c.fill(); c.strokeStyle = rgba(t, isDark ? 0.95 : 0.90); c.lineWidth = 1.8; c.stroke(); }
+        else { c.fillStyle = isDark ? 'rgba(99, 102, 241, 0.20)' : 'rgba(79, 70, 229, 0.14)'; c.fill(); c.strokeStyle = isDark ? 'rgba(129, 140, 248, 0.65)' : 'rgba(79, 70, 229, 0.55)'; c.lineWidth = 1.1; c.stroke(); }
+      }
+    } else {
+      c.fillStyle = isDark ? '#8896AB' : '#475569'; c.font = '500 12px "Segoe UI", sans-serif'; c.textAlign = 'center';
+      c.fillText(state.mapError ? 'Harita verisi yüklenemedi' : 'Harita yükleniyor...', cx, cy);
+    }
+    c.restore();
+  }
+  // Önbellek anahtarı değişmediği (küre durağan) karelerde taban önbellekten basılır; döndüğü karelerde doğrudan çizilir (ek maliyet yok).
+  function drawGlobe(isDark, dt, cx, cy, radius) {
+    projection.scale(radius).translate([cx, cy]).rotate([-state.rotLon, -state.rotLat, 0]);
+    const rg = state.currentRgb, anahtar = [isDark ? 1 : 0, width, height, dprSiniri, cx.toFixed(1), cy.toFixed(1), radius.toFixed(1), state.rotLon.toFixed(2), state.rotLat.toFixed(2), state.mapLoaded ? 1 : 0, Math.round(rg[0]), Math.round(rg[1]), Math.round(rg[2])].join('|');
+    if (anahtar === tabanSon) {
+      if (anahtar !== tabanAnahtar) { tctx.clearRect(0, 0, width, height); cizTaban(tctx, tabanYol, isDark, cx, cy, radius); tabanAnahtar = anahtar; state.tabanCizim++; }
+      ctx.drawImage(taban, 0, 0, width, height); state.tabanBasim++;
+    } else cizTaban(ctx, pathGen, isDark, cx, cy, radius);
+    tabanSon = anahtar;
+    if (state.mapLoaded) {
+      const fadeRate = state.modeKey === 'kritik' ? 0.8 : 0.5;
+      // Yayların indiği ülkeler kısa süre renkle parlar (Türkiye hariç).
+      for (const [iso, flash] of countryFlashes) {
+        flash.alpha = Math.max(0, flash.alpha - dt * fadeRate); if (flash.alpha <= 0.01) { countryFlashes.delete(iso); continue; }
+        const feature = state.isoHarita.get(iso); if (!feature || iso === TURKEY_ID) continue;
+        const f = hexToRgb(flash.color); ctx.beginPath(); pathGen(feature); ctx.fillStyle = rgba(f, isDark ? flash.alpha * 0.42 : flash.alpha * 0.28); ctx.fill(); ctx.strokeStyle = rgba(f, Math.min(0.9, flash.alpha + 0.2)); ctx.lineWidth = 1.1; ctx.stroke();
+      }
+    }
+    // Üzerine gelinen ve odaklanılan ülkenin gerçek sınır şekli parlar (harita döndükçe ülkeyle birlikte kayar).
+    if (state.mapLoaded) {
+      const parla = (idx, guc) => {
+        if (idx < 0 || !state.countries[idx]) return; const c = isDark ? [34, 211, 238] : [79, 70, 229];
+        ctx.save(); ctx.beginPath(); pathGen(state.countries[idx]); ctx.fillStyle = rgba(c, (isDark ? 0.30 : 0.24) * guc); ctx.shadowColor = rgba(c, 0.9 * guc); ctx.shadowBlur = 16 * guc; ctx.fill();
+        ctx.shadowBlur = 0; ctx.strokeStyle = rgba(c, Math.min(1, 0.95 * guc + 0.05)); ctx.lineWidth = 2.1; ctx.lineJoin = 'round'; ctx.stroke(); ctx.restore();
+      };
+      if (state.focusIdx >= 0) parla(state.focusIdx, 0.85); if (state.hoverIdx >= 0 && state.hoverIdx !== state.focusIdx) parla(state.hoverIdx, 1);
+    }
+    ctx.beginPath(); pathGen({ type: 'Sphere' }); ctx.strokeStyle = isDark ? 'rgba(99, 102, 241, 0.45)' : 'rgba(79, 70, 229, 0.32)'; ctx.lineWidth = 1.6; ctx.stroke();
+    drawGeoLabels(isDark);
+  }
+
+  function drawGeoLabels(isDark) {
+    ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = '600 8.5px "Segoe UI", sans-serif';
+    const sh = state.shieldHit, ank0 = isFrontHemisphere(ANKARA_COORDS) ? projection(ANKARA_COORDS) : null, avoid = sh.r * 1.9;
+    if (ank0) {
+      const pulse = (state.elapsed * 0.9) % 1, t = state.currentRgb;
+      if (state.showShield) { ctx.beginPath(); ctx.arc(ank0[0], ank0[1], 3 + pulse * 11, 0, Math.PI * 2); ctx.strokeStyle = rgba(t, (1 - pulse) * 0.85); ctx.lineWidth = 1.5; ctx.stroke(); }
+      ctx.beginPath(); ctx.arc(ank0[0], ank0[1], 3, 0, Math.PI * 2); ctx.fillStyle = '#FFFFFF'; ctx.shadowColor = rgba(t, 0.95); ctx.shadowBlur = state.showShield ? 10 : 0; ctx.fill(); ctx.shadowBlur = 0;
+    }
+    // Tüm ülke adları kendi coğrafi konumunda yazılır ve küre dönünce ülkeyle birlikte kayar. Türkiye kalın ve büyük, diğerleri küçük.
+    // Yer çakışırsa küçük ülkenin adı yazılmaz; yakınlaştıkça daha çok ad sığar. Kürenin kenarına yakın (eğri) ve kalkanın altındaki adlar gizlenir.
+    const R = state.gR || 100, yerlesen = [], sira = state.etiketSirasi || [];
+    const alfa = state.etiketAlfa, adim = Math.min(0.05, state.dt || 0.016) * 7, merkez = [state.rotLon, state.rotLat];
+    ctx.lineJoin = 'round'; ctx.strokeStyle = isDark ? 'rgba(11, 18, 34, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+    for (let s = 0; s < sira.length; s++) {
+      const idx = sira[s], f = state.countries[idx]; if (!f || !f.etiket || !f.merkez) continue;
+      const turkiye = f.iso === TURKEY_ID, komsu = Boolean(NEIGHBORS[f.iso]);
+      let uygun = false, pt = null, w = 0, h = 0;
+      if (d3.geoDistance(f.merkez, merkez) <= Math.PI / 2 - 0.22) {
+        pt = projection(f.merkez);
+        if (pt && pt[0] >= 4 && pt[0] <= width - 4 && pt[1] >= 4 && pt[1] <= height - 4 && !(state.showShield && Math.hypot(pt[0] - sh.x, pt[1] - sh.y) < avoid)) {
+          ctx.font = turkiye ? '800 10.5px "Segoe UI", sans-serif' : '600 8.5px "Segoe UI", sans-serif';
+          w = ctx.measureText(turkiye ? 'TÜRKİYE' : f.etiket).width; h = turkiye ? 13 : 11;
+          const cap = Math.sin(Math.min(f.yar, 1.4)) * R * 2; // ülkenin ekrandaki kabaca eni
+          if (turkiye || w <= cap * (komsu ? 3.4 : 2.5)) {
+            const x0 = pt[0] - w / 2 - 2, y0 = pt[1] - h / 2 - 1, x1 = pt[0] + w / 2 + 2, y1 = pt[1] + h / 2 + 1; uygun = true;
+            for (let k = 0; k < yerlesen.length; k++) { const r = yerlesen[k]; if (x0 < r[2] && x1 > r[0] && y0 < r[3] && y1 > r[1]) { uygun = false; break; } }
+            if (uygun) yerlesen.push([x0, y0, x1, y1]);
+          }
+        }
+      }
+      // Yazılar ani belirip kaybolmaz (titreme olmasın): yumuşakça açılır/kapanır.
+      alfa[idx] = uygun ? Math.min(1, alfa[idx] + adim) : Math.max(0, alfa[idx] - adim); if (alfa[idx] < 0.03 || !pt) continue;
+      if (!w) { ctx.font = turkiye ? '800 10.5px "Segoe UI", sans-serif' : '600 8.5px "Segoe UI", sans-serif'; }
+      const yazi = turkiye ? 'TÜRKİYE' : f.etiket; ctx.globalAlpha = alfa[idx];
+      // Gölge bulanıklığı yerine ince kontur (halo): çok daha hızlı.
+      // Yazı tam piksele oturtulur: kesirli konumda glif render'ı kayarken 1 piksellik titreme yapar.
+      const tx = Math.round(pt[0]), ty = Math.round(pt[1]);
+      ctx.lineWidth = turkiye ? 3.2 : 2.4; ctx.strokeText(yazi, tx, ty);
+      ctx.fillStyle = turkiye ? (isDark ? '#FFFFFF' : '#0F172A') : (isDark ? 'rgba(203, 213, 225, 0.92)' : 'rgba(30, 41, 59, 0.92)'); ctx.fillText(yazi, tx, ty);
+    }
+    ctx.globalAlpha = 1; ctx.restore();
+  }
+
+  function updateAndDrawArcs(isDark, cx, cy) {
+    const mode = MODES[effKey()];
+    // Yakınlaşılınca ekranda yalnızca birkaç şehir kaldığından, görünür bölgede ışık eksik kalmasın diye kare başına iki yay başlatılabilir.
+    if (state.demoYay) for (let n = 0; n < (state.zoom > 1.15 ? 2 : 1); n++) if (arcs.length < mode.maxArcs && Math.random() < mode.spawnChance) spawnArc();
+    ctx.save(); ctx.lineCap = 'round';
+    for (let i = arcs.length - 1; i >= 0; i--) {
+      const a = arcs[i]; a.progress += a.speed * 60 * (state.dt || 0.016) * (state.showShield ? 1 : 0.7); // süre bazlı: kare hızı değişse de hız sabit
+      if (a.progress - a.tail > 1) { arcs.splice(i, 1); continue; }
+      if (!a.landed && a.progress >= 1) { a.landed = true; flashCountry(a.to.iso, a.color, state.modeKey === 'kritik' ? 0.92 : 0.68); impactRings.push({ coords: a.to.coords, color: a.color, age: 0 }); }
+      const tStart = Math.max(0, a.progress - a.tail), tEnd = Math.min(1, a.progress); if (tEnd <= tStart) continue;
+      // Hız için: kuyruk 12 noktaya bölünür ve 4 parça olarak (her biri kendi saydamlığında) çizilir; parlama için gölge bulanıklığı yerine yarı saydam halka kullanılır.
+      const rgb = hexToRgb(a.color), steps = 12, pts = new Array(steps + 1), merkez = [state.rotLon, state.rotLat];
+      for (let s = 0; s <= steps; s++) {
+        const t = tStart + ((tEnd - tStart) * s) / steps, geo = a.interp(t); pts[s] = null;
+        if (!(d3.geoDistance(geo, merkez) < Math.PI / 2 + 0.12)) continue;
+        const proj = projection(geo); if (!proj) continue;
+        const alt = 1 + Math.sin(Math.PI * t) * a.lift; pts[s] = { x: cx + (proj[0] - cx) * alt, y: cy + (proj[1] - cy) * alt };
+      }
+      for (let g = 0; g < 4; g++) {
+        ctx.beginPath(); let basladi = false;
+        for (let s = g * 3; s <= g * 3 + 3; s++) { const p = pts[s]; if (!p) { basladi = false; continue; } if (!basladi) { ctx.moveTo(p.x, p.y); basladi = true; } else ctx.lineTo(p.x, p.y); }
+        const frac = (g + 1) / 4; ctx.strokeStyle = rgba(rgb, Math.pow(frac, 1.5) * (isDark ? 0.92 : 0.82)); ctx.lineWidth = (isDark ? 1.75 : 1.95) * (0.45 + frac * 0.7); ctx.stroke();
+      }
+      const head = pts[steps];
+      if (head && a.progress <= 1) {
+        ctx.beginPath(); ctx.arc(head.x, head.y, isDark ? 6.5 : 5.5, 0, Math.PI * 2); ctx.fillStyle = rgba(hexToRgb(a.color), isDark ? 0.22 : 0.18); ctx.fill();
+        ctx.beginPath(); ctx.arc(head.x, head.y, isDark ? 2.9 : 2.7, 0, Math.PI * 2); ctx.fillStyle = isDark ? '#FFFFFF' : a.color; ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  function updateAndDrawImpactRings(isDark, dt) {
+    ctx.save();
+    for (let i = impactRings.length - 1; i >= 0; i--) {
+      const r = impactRings[i]; r.age += dt * 1.45; if (r.age >= 1) { impactRings.splice(i, 1); continue; }
+      if (!isFrontHemisphere(r.coords)) continue; const pt = projection(r.coords); if (!pt) continue;
+      ctx.beginPath(); ctx.arc(pt[0], pt[1], 2.5 + r.age * 15, 0, Math.PI * 2); ctx.strokeStyle = rgba(hexToRgb(r.color), (1 - r.age) * (isDark ? 0.88 : 0.75)); ctx.lineWidth = 1.6; ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawShieldOverlay(isDark, cxDunya, cy0, globeR) {
+    const mode = MODES[effKey()], rgb = state.currentRgb, accentRgb = isDark ? [99, 102, 241] : [79, 70, 229];
+    const baseR = Math.max(24, Math.min(40, globeR * 0.20));
+    // Kalkan kürenin ortasından aşağı çekildi (ülkelerin üstünü kapatmasın); küre dönse de yerinde durur.
+    const cx = cxDunya, cy = cy0 + Math.min(globeR * 0.52, Math.max(0, globeR - baseR * 1.5));
+    state.shieldHit = { x: cx, y: cy, r: baseR * 1.3 };
+    if (!state.showShield) {
+      // Pasif (soluk) kalkan: tıklanarak yeniden açılabilir. Halka ve yörünge yok.
+      ctx.save(); ctx.globalAlpha = 0.62;
+      ctx.beginPath(); ctx.arc(cx, cy, baseR, 0, Math.PI * 2); ctx.fillStyle = rgba(rgb, 0.16); ctx.fill(); ctx.strokeStyle = rgba(rgb, 0.6); ctx.lineWidth = 1.6; ctx.stroke();
+      drawVectorShield(cx, cy, baseR * 0.48, rgb, isDark); ctx.restore();
+      drawStatusBanner(isDark, cx, mode, rgb); return;
+    }
+    [state.ripple1, state.ripple2].forEach(prog => {
+      const r = baseR + prog * (baseR * 1.25), alpha = (1 - prog) * (isDark ? 0.36 : 0.42); if (alpha <= 0.01) return;
+      ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.strokeStyle = rgba(rgb, alpha); ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
+    });
+    const rOuter = baseR * 1.46, radOuter = (state.outerAngle * Math.PI) / 180;
+    ctx.save(); ctx.strokeStyle = rgba(accentRgb, isDark ? 0.48 : 0.50); ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(cx, cy, rOuter, radOuter, radOuter + Math.PI * 0.52); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, rOuter, radOuter + Math.PI, radOuter + Math.PI * 1.52); ctx.stroke();
+    const rInner = baseR * 1.22, radInner = (state.innerAngle * Math.PI) / 180; ctx.strokeStyle = rgba(rgb, isDark ? 0.55 : 0.58); ctx.setLineDash([4, 5]);
+    ctx.beginPath(); ctx.arc(cx, cy, rInner, radInner, radInner + Math.PI * 0.68); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, rInner, radInner + Math.PI, radInner + Math.PI * 1.68); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+    const rCenter = baseR * (1 + Math.sin(state.breathePhase) * 0.035);
+    ctx.save(); const auraGrad = ctx.createRadialGradient(cx, cy, rCenter * 0.1, cx, cy, rCenter); auraGrad.addColorStop(0, rgba(rgb, isDark ? 0.24 : 0.18)); auraGrad.addColorStop(1, rgba(rgb, 0.04));
+    ctx.beginPath(); ctx.arc(cx, cy, rCenter, 0, Math.PI * 2); ctx.fillStyle = auraGrad; ctx.fill(); ctx.strokeStyle = rgba(rgb, 0.72); ctx.lineWidth = 1.8; ctx.stroke(); ctx.restore();
+    drawVectorShield(cx, cy, rCenter * 0.48, rgb, isDark);
+    drawStatusBanner(isDark, cx, mode, rgb);
+  }
+
+  function drawStatusBanner(isDark, cx, mode, rgb) {
+    // Küçük, kürenin altında ayrı bir bantta durur (küreye binmez).
+    ctx.save();
+    ctx.font = '700 12px "Segoe UI", system-ui, sans-serif'; let titleW = 0;
+    ctx.font = '400 10px "Segoe UI", system-ui, sans-serif'; const hizmetYazi = state.hizmet === 'calisiyor' ? 'Koruma hizmeti ÇALIŞIYOR · arayüz kapalıyken de sürer' : state.hizmet === 'kurulu' ? 'Koruma hizmeti kurulu ama DURMUŞ · koruma yalnızca program açıkken' : state.hizmet === 'yok' ? 'Koruma hizmeti kurulu DEĞİL · koruma yalnızca program açıkken' : '';
+    const baslikYazi = (state.hizmet === 'calisiyor' && state.showShield && state.modeKey === 'guvende') ? 'Koruma Hizmeti Çalışıyor' : mode.title;
+    ctx.font = '700 12px "Segoe UI", system-ui, sans-serif'; titleW = ctx.measureText(baslikYazi).width; ctx.font = '400 10px "Segoe UI", system-ui, sans-serif';
+    const altYazi0 = (hizmetYazi && state.modeKey === 'guvende' ? hizmetYazi : mode.subtitle) + (state.demoYay ? ' · Yaylar örnek görseldir' : '');   /* örnek uyarısı yalnızca Görsel Demo Yayları açıkken görünür */ const altYazi = state.readOnly ? 'Pilot (salt okunur) mod: açıp kapatma kapalı · ' + altYazi0 : altYazi0; const subW = ctx.measureText(altYazi).width;
+    const boxW = Math.min(width - 24, Math.max(titleW, subW) + 26), boxH = BANNER_H, bx = cx - boxW * 0.5, by = height - boxH - 5;
+    ctx.beginPath(); ctx.roundRect(bx, by, boxW, boxH, 10); ctx.fillStyle = rgba(tokRgb('surfaceApp', isDark ? [20, 27, 46] : [255, 255, 255]), isDark ? 0.78 : 0.84); ctx.fill(); ctx.strokeStyle = rgba(rgb, isDark ? 0.35 : 0.32); ctx.lineWidth = 1; ctx.stroke();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.font = '700 12px "Segoe UI", system-ui, sans-serif'; ctx.fillStyle = tokHex('textPrimary', isDark ? '#E8ECF4' : '#0F172A'); ctx.fillText(baslikYazi, cx, by + 6);
+    ctx.font = '400 10px "Segoe UI", system-ui, sans-serif'; ctx.fillStyle = tokHex('textSecondary', isDark ? '#94A3B8' : '#475569'); ctx.fillText(altYazi, cx, by + 22); ctx.restore();
+  }
+
+  function drawVectorShield(cx, cy, s, rgb, isDark) {
+    ctx.save(); ctx.beginPath(); ctx.moveTo(cx, cy - s); ctx.lineTo(cx + s * 0.85, cy - s * 0.56);
+    ctx.bezierCurveTo(cx + s * 0.85, cy + s * 0.34, cx + s * 0.36, cy + s * 0.80, cx, cy + s);
+    ctx.bezierCurveTo(cx - s * 0.36, cy + s * 0.80, cx - s * 0.85, cy + s * 0.34, cx - s * 0.85, cy - s * 0.56); ctx.closePath();
+    const grad = ctx.createLinearGradient(cx, cy - s, cx, cy + s); grad.addColorStop(0, rgba(rgb, 0.90)); grad.addColorStop(1, rgba(rgb, isDark ? 0.68 : 0.78));
+    ctx.shadowColor = rgba(rgb, isDark ? 0.5 : 0.3); ctx.shadowBlur = 14; ctx.fillStyle = grad; ctx.fill(); ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(255, 255, 255, 0.38)'; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.strokeStyle = '#FFFFFF'; ctx.fillStyle = '#FFFFFF'; ctx.lineWidth = Math.max(2.2, s * 0.11); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (!state.showShield) { // duraklat simgesi
+      ctx.beginPath(); ctx.moveTo(cx - s * 0.2, cy - s * 0.28); ctx.lineTo(cx - s * 0.2, cy + s * 0.28); ctx.moveTo(cx + s * 0.2, cy - s * 0.28); ctx.lineTo(cx + s * 0.2, cy + s * 0.28); ctx.stroke();
+    } else if (state.modeKey === 'guvende') { ctx.beginPath(); ctx.moveTo(cx - s * 0.32, cy + s * 0.02); ctx.lineTo(cx - s * 0.08, cy + s * 0.26); ctx.lineTo(cx + s * 0.36, cy - s * 0.24); ctx.stroke(); }
+    else if (state.modeKey === 'dikkat') { ctx.beginPath(); ctx.moveTo(cx, cy - s * 0.32); ctx.lineTo(cx, cy + s * 0.08); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy + s * 0.30, Math.max(1.7, s * 0.068), 0, Math.PI * 2); ctx.fill(); }
+    else { const d = s * 0.24; ctx.beginPath(); ctx.moveTo(cx - d, cy - d); ctx.lineTo(cx + d, cy + d); ctx.moveTo(cx + d, cy - d); ctx.lineTo(cx - d, cy + d); ctx.stroke(); }
+    ctx.restore();
+  }
+
+  /* İmlecin yanında küçük ülke adı etiketi. */
+  function drawHoverLabel(isDark) {
+    if (state.isDragging) return;
+    let satirlar = null, vurgu = isDark ? 'rgba(34, 211, 238, 0.7)' : 'rgba(79, 70, 229, 0.6)';
+    if (state.hoverIsik && state.isik) { // bildirim ışığı: sayılar + en yeni olayın mesajı
+      const o = state.isik; satirlar = [(o.kritik ? o.kritik + ' Kritik' : '') + (o.kritik && o.uyari ? ' · ' : '') + (o.uyari ? o.uyari + ' Uyarı' : '') + '  (son 30 dk)', (o.zaman ? o.zaman + '  ' : '') + o.mesaj, (state.isikHit && state.isikHit.arkada ? 'Türkiye küre arkasında · ' : '') + 'Ayrıntı için tıklayın'];
+      vurgu = o.seviye === 'Kritik' ? 'rgba(239, 68, 68, 0.85)' : 'rgba(245, 158, 11, 0.85)';
+    } // Ülke adları artık imleç yanında değil, küre üzerinde yazılır (drawGeoLabels).
+    if (!satirlar) return;
+    ctx.save(); ctx.font = '600 11px "Segoe UI", system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const kes = (s) => { const en = 300; while (s.length > 4 && ctx.measureText(s).width > en) s = s.slice(0, -2); return s; };
+    satirlar = satirlar.map(s => s.length && ctx.measureText(s).width > 300 ? kes(s) + '…' : s);
+    let w = 0; for (const s of satirlar) w = Math.max(w, ctx.measureText(s).width); w += 16; const h = 6 + satirlar.length * 16;
+    let x = state.mx + 14, y = state.my + 16; if (x + w > width - 4) x = state.mx - 14 - w; if (y + h > height - 4) y = state.my - 12 - h; x = Math.max(4, x); y = Math.max(4, y);
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fillStyle = rgba(tokRgb('surfaceCard', isDark ? [15, 23, 42] : [255, 255, 255]), isDark ? 0.92 : 0.95); ctx.fill();
+    ctx.strokeStyle = vurgu; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = tokHex('textPrimary', isDark ? '#E8ECF4' : '#0F172A'); for (let i = 0; i < satirlar.length; i++) ctx.fillText(satirlar[i], x + 8, y + 3 + i * 16 + 8.5); ctx.restore();
+  }
+
+  /* ANİMASYON DENETİMİ: görünmezken (sekme gizli, pencere küçültüldü, panel gizlendi) requestAnimationFrame döngüsü TAMAMEN durur (CPU/GPU kullanımı sıfır); görününce kalınan yerden sürer.
+     Uyarlanabilir kare hızı: kare maliyeti uzun süre yüksekse hedef 60 → 30 → 20 kare/sn'ye iner (zayıf ekran kartı); hızlanınca geri yükselir. */
+  state.kare = 0; state.hostDurdu = false; state.tabanCizim = 0; state.tabanBasim = 0;
+  let lastTs = performance.now(), rafId = 0, sonCizim = 0, minKareMs = 0, maliyetEma = 8, yavasKare = 0, hizliKare = 0, cokYavas = 0;
+  const durduruldu = () => state.hostDurdu || document.visibilityState === 'hidden';
+  function planla() { if (rafId === 0 && !durduruldu()) rafId = requestAnimationFrame(animate); }
+  function duraklat() { if (rafId) { cancelAnimationFrame(rafId); rafId = 0; } }
+  function devam() { lastTs = performance.now(); sonCizim = 0; planla(); }
+  window.bsDuraklat = function (d) { state.hostDurdu = !!d; if (d) duraklat(); else devam(); };   // C# (KureWebPaneli): panel gizlendi/küçültüldü → true, görününce false
+  document.addEventListener('visibilitychange', () => { if (durduruldu()) duraklat(); else devam(); });
+  window.bsDurum = () => ({ kare: state.kare, duraklatildi: durduruldu(), rafAktif: rafId !== 0, hedefKareMs: Math.round(minKareMs), maliyetMs: Math.round(maliyetEma * 10) / 10, dpr: dprSiniri, tabanCizim: state.tabanCizim, tabanBasim: state.tabanBasim });
+  function kareBitti(t0) {
+    state.kare++; const m = performance.now() - t0; maliyetEma = maliyetEma * 0.9 + m * 0.1;
+    if (maliyetEma > 22) { yavasKare++; hizliKare = 0; } else if (maliyetEma < 9) { hizliKare++; yavasKare = 0; } else { yavasKare = 0; hizliKare = 0; }
+    if (maliyetEma > 40 && minKareMs >= 33) cokYavas++; else cokYavas = 0;
+    if (yavasKare > 30 && minKareMs < 33) { minKareMs = 33; yavasKare = 0; } else if (yavasKare > 30 && minKareMs < 50) { minKareMs = 50; yavasKare = 0; }
+    else if (hizliKare > 150 && minKareMs > 0) { minKareMs = minKareMs >= 50 ? 33 : 0; hizliKare = 0; }
+    if (cokYavas > 60 && dprSiniri > 1) { dprSiniri = 1; cokYavas = 0; resizeCanvas(); }   // son çare: çözünürlüğü (devicePixelRatio) 1'e indir
+    planla();
+  }
+  function animate(now) {
+    rafId = 0; if (durduruldu()) return;
+    if (minKareMs > 0 && sonCizim > 0 && now - sonCizim < minKareMs - 2) { rafId = requestAnimationFrame(animate); return; }   // hedef kare hızından hızlı: bu kareyi atla
+    sonCizim = now; const t0 = performance.now();
+    const dt = Math.min(0.05, (now - lastTs) / 1000); lastTs = now; state.elapsed += dt; state.dt = dt;
+    const isDark = state.theme === 'dark', mode = MODES[effKey()], targetRgb = tokRgb(TOK_MOD[effKey()], isDark ? mode.darkRgb : mode.lightRgb), ease = Math.min(1, dt * 7);
+    for (let i = 0; i < 3; i++) state.currentRgb[i] = lerp(state.currentRgb[i], targetRgb[i], ease);
+    if (state.cam && !state.isDragging) { // ülkeye odaklanma / geri dönüş: yumuşak geçiş
+      const k = 1 - Math.exp(-dt * 4.2), c = state.cam;
+      state.rotLon = (state.rotLon + angFark(state.rotLon, c.lon) * k + 540) % 360 - 180; state.rotLat += (c.lat - state.rotLat) * k; state.zoom += (c.zoom - state.zoom) * k;
+      if (Math.abs(angFark(state.rotLon, c.lon)) < 0.15 && Math.abs(c.lat - state.rotLat) < 0.15 && Math.abs(c.zoom - state.zoom) < 0.01) { state.rotLon = c.lon; state.rotLat = c.lat; state.zoom = c.zoom; state.cam = null; }
+    } else if (!state.isDragging && !state.mouseIn && state.focusIdx < 0 && state.zoom <= 1.02) {
+      // İmleç küre üzerinde değilken sürekli döner (gözle görülür hızda); enlem yavaşça dengeye gelir.
+      state.rotLon = (state.rotLon + OTO_DONUS * dt + 540) % 360 - 180; state.rotLat += (24 - state.rotLat) * Math.min(1, dt * 0.6);
+    }
+    // İmleç uzun süre dışarıdaysa odak/yakınlaşma kendiliğinden geri alınır, küre yeniden dönmeye başlar.
+    if (state.mouseIn || state.isDragging) state.disariSn = 0;
+    else if ((state.focusIdx >= 0 || state.zoom > 1.02) && !state.cam) { state.disariSn += dt; if (state.disariSn > 8) { state.disariSn = 0; if (state.focusIdx >= 0) odakKaldir(); else state.cam = { lon: state.rotLon, lat: state.rotLat, zoom: 1 }; } }
+    const sp = mode.speedMult;
+    state.outerAngle = (state.outerAngle + 32 * sp * dt) % 360; state.innerAngle = (state.innerAngle - 20 * sp * dt + 360) % 360;
+    state.ripple1 = (state.ripple1 + 0.36 * sp * dt) % 1; state.ripple2 = (state.ripple2 + 0.36 * sp * dt) % 1; state.breathePhase += 2.0 * sp * dt;
+    ctx.clearRect(0, 0, width, height);
+    const bandH = BANNER_H + 10, usable = Math.max(100, height - bandH - 6), cx = width * 0.5, cy = 3 + usable / 2, globeR = Math.max(60, Math.min(width * 0.42, (usable / 2) / (1 + MAX_LIFT) - 2));
+    // Önce bu karedeki izdüşümü kur (üzerine gelinen ülke doğru bulunsun), sonra çiz.
+    projection.scale(globeR * state.zoom).translate([cx, cy]).rotate([-state.rotLon, -state.rotLat, 0]);
+    projFull.scale(globeR * state.zoom).translate([cx, cy]).rotate([-state.rotLon, -state.rotLat, 0]); state.gc = [cx, cy]; state.gR = globeR * state.zoom;
+    state.hoverIsik = state.mouseIn && !state.isDragging && isikUstunde(state.mx, state.my);
+    state.hoverT += dt; if (state.hoverT >= 0.06 || state.isDragging) { state.hoverT = 0; state.hoverIdx = (state.mouseIn && !state.isDragging && !state.hoverIsik) ? ulkeBul(state.mx, state.my) : -1; canvas.style.cursor = state.isDragging ? '' : (state.hoverIdx >= 0 || state.hoverIsik ? 'pointer' : ''); }
+    if (state.hoverIsik) state.hoverIdx = -1;
+    drawGlobe(isDark, dt, cx, cy, globeR * state.zoom); drawIsik(isDark); updateAndDrawArcs(isDark, cx, cy); updateAndDrawImpactRings(isDark, dt); drawShieldOverlay(isDark, cx, cy, globeR);
+    drawHoverLabel(isDark);
+    kareBitti(t0);
+  }
+
+  /* C# köprüsü: tema, durum ve kalkan bilgisi programdan gelir (sayfada kullanıcıya gösterilen düğme yoktur). */
+  window.bsAyarla = function (o) {
+    if (!o) return;
+    if (o.tema) { state.theme = o.tema === 'acik' ? 'light' : 'dark'; document.body.classList.toggle('light', state.theme === 'light'); }
+    if (o.durum && MODES[o.durum] && o.durum !== 'pasif') state.modeKey = o.durum;
+    if (typeof o.kalkan === 'boolean') state.showShield = o.kalkan;
+    if (typeof o.saltOkunur === 'boolean') state.readOnly = o.saltOkunur;
+    if (typeof o.hizmet === 'string') state.hizmet = o.hizmet;
+    if (typeof o.demoYay === 'boolean' && o.demoYay !== state.demoYay) { state.demoYay = o.demoYay; if (o.demoYay) demoYaylariHazirla(); else { arcs.length = 0; impactRings.length = 0; } }
+  };
+
+  loadWorldAtlas();
+  planla();
+})();
+</script>
+</body>
+</html>
